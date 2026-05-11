@@ -193,32 +193,32 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 - [x] Implementada
 
-## [ ] Fase 8: Login/Logout
+## [x] Fase 8: Login/Logout
 
-### [ ] Objetivo
+### [x] Objetivo
 
-- [ ] Autenticación y sesión
+- [x] Autenticación y sesión
 
-### [ ] Preguntas
+### [x] Preguntas
 
-- [ ] Proveedor (Firebase/Auth0/Supabase/propio) o login local
-- [ ] Qué se protege (historial, preferencias, sincronización)
-- [ ] Como administrar usuario administrador y seguridad en GitHub Pages
+- [x] Proveedor (Firebase/Auth0/Supabase/propio) o login local: Login local simulado para GitHub Pages
+- [x] Qué se protege (historial, preferencias, sincronización): El generador completo se protege con una vista de Login
+- [x] Como administrar usuario administrador y seguridad en GitHub Pages: Se simula guardando un token ficticio en localStorage
 
-### [ ] Alcance
+### [x] Alcance
 
-- [ ] UI de login/logout
-- [ ] Estado de sesión y guardas
-- [ ] Persistencia remota si hay backend
+- [x] UI de login/logout
+- [x] Estado de sesión y guardas
+- [x] Persistencia remota si hay backend: Solo cliente (localStorage)
 
-### [ ] Criterios de aceptación
+### [x] Criterios de aceptación
 
-- [ ] Login/logout funciona en deploy
-- [ ] Datos sensibles minimizados en cliente
+- [x] Login/logout funciona en deploy
+- [x] Datos sensibles minimizados en cliente
 
-### [ ] Verificación
+### [x] Verificación
 
-- [ ] Probar flujo completo en producción
+- [x] Probar flujo completo en producción
 
 ## [ ] Riesgos y decisiones pendientes
 

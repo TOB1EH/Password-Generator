@@ -11,7 +11,7 @@ Fases implementadas:
 5- Botones generar/copiar
 6- Temas claro/oscuro + historial persistente
 7- Revelar/ocultar contrasena
-8- (pendiente) Login/Logout
+8- Login/Logout (simulado)
 
 Mejoras agregadas post-fases:
 - Boton de mostrar/ocultar dentro del campo de contrasena
@@ -25,6 +25,3 @@ Mejoras agregadas post-fases:
 - Historial colapsable y persistente
 - IDs de historial con crypto.getRandomValues
 - Iconos SVG con lucide-vue-next (sin emojis)
-
-Pendiente:
-- Fase 8: Login/Logout (funcional en GitHub Pages sin backend)

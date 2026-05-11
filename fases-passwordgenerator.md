@@ -86,7 +86,7 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 ### [ ] Verificación
 
-- [ ] Base corta/larga, con y sin espacios, con especiales
+- [x] Base corta/larga, con y sin espacios, con especiales
 
 ## [x] Fase 4: Modo diccionario (frases)
 
@@ -114,72 +114,84 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 ### [ ] Verificación
 
-- [ ] Probar mínimo y máximo de palabras
+- [x] Probar mínimo y máximo de palabras
 - [ ] Probar en mobile
 
-## [ ] Fase 5: Flujo de generación y copiado (pulido)
+## [x] Fase 5: Flujo de generación y copiado (pulido)
 
-### [ ] Objetivo
+### [x] Objetivo
 
-- [ ] Completar UX de acciones principales
+- [x] Completar UX de acciones principales
 
-### [ ] Alcance
+### [x] Alcance
 
-- [ ] Generar consistente para ambos modos
-- [ ] Estados de copiar (éxito/fallo)
-- [ ] Accesibilidad (foco, labels, aria, teclado)
+- [x] Generar consistente para ambos modos
+- [x] Estados de copiar (éxito/fallo)
+- [x] Accesibilidad (foco, labels, aria, teclado)
 
-### [ ] Criterios de aceptación
+### [x] Criterios de aceptación
 
-- [ ] Accesible por teclado
-- [ ] Estados no dependen solo de color
+- [x] Accesible por teclado
+- [x] Estados no dependen solo de color
 
 ### [ ] Verificación
 
 - [ ] Navegación con Tab
 - [ ] Lighthouse si está disponible
 
-## [ ] Fase 6: Tema claro/oscuro e historial
+### [ ] Estado
 
-### [ ] Objetivo
+- [x] Implementada
 
-- [ ] Personalización y trazabilidad local
+## [x] Fase 6: Tema claro/oscuro e historial
 
-### [ ] Alcance
+### [x] Objetivo
 
-- [ ] Toggle de tema (opcional: respeta `prefers-color-scheme`)
-- [ ] Historial con timestamps y opción de limpiar
-- [ ] Persistencia en `localStorage`
+- [x] Personalización y trazabilidad local
 
-### [ ] Criterios de aceptación
+### [x] Alcance
 
-- [ ] Tema persiste entre sesiones
-- [ ] Historial con límite para evitar crecimiento infinito
+- [x] Toggle de tema (opcional: respeta `prefers-color-scheme`)
+- [x] Historial con timestamps y opción de limpiar
+- [x] Persistencia en `localStorage`
+
+### [x] Criterios de aceptación
+
+- [x] Tema persiste entre sesiones
+- [x] Historial con límite para evitar crecimiento infinito
 
 ### [ ] Verificación
 
 - [ ] Recargar y confirmar persistencia
 - [ ] Generar muchos items y confirmar límite
 
-## [ ] Fase 7: Revelar/ocultar contraseña
+### [ ] Estado
 
-### [ ] Objetivo
+- [x] Implementada
 
-- [ ] Ocultar el valor mostrado con asteriscos
+## [x] Fase 7: Revelar/ocultar contraseña
 
-### [ ] Alcance
+### [x] Objetivo
 
-- [ ] Toggle Mostrar/Ocultar
-- [ ] Definir estado por defecto (privacidad)
+- [x] Ocultar el valor mostrado con asteriscos
 
-### [ ] Criterios de aceptación
+### [x] Alcance
 
-- [ ] Ocultar no rompe copiar
-- [ ] No filtra el valor por UI secundaria
+- [x] Toggle Mostrar/Ocultar
+- [x] Definir estado por defecto (privacidad)
+
+### [x] Criterios de aceptación
+
+- [x] Ocultar no rompe copiar
+- [x] No filtra el valor por UI secundaria
 
 ### [ ] Verificación
 
 - [ ] Copiar con ambos estados
+
+### [ ] Estado
+
+- [x] Implementada
 
 ## [ ] Fase 8: Login/Logout
 

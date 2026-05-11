@@ -52,7 +52,7 @@ function capitalizeFirst(word) {
 }
 
 export function generatePassphrase({ wordsCount, separator = '-', capitalize = false }) {
-  if (!Number.isInteger(wordsCount) || wordsCount < 2 || wordsCount > 10) {
+  if (!Number.isInteger(wordsCount) || wordsCount < 2 || wordsCount > 20) {
     throw new Error('cantidad de palabras fuera de rango')
   }
 

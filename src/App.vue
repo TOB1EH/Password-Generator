@@ -25,6 +25,12 @@ const passphraseCapitalize = ref(false)
 
 const password = ref('')
 const copyState = ref('idle')
+const reveal = ref(false)
+
+const theme = ref('system')
+const history = ref([])
+
+const HISTORY_LIMIT = 50
 
 const charset = computed(() =>
   buildCharset({
@@ -91,6 +97,8 @@ function applyBaseStrategy({ outLength, charsetValue }) {
 }
 
 function regenerate() {
+  const before = password.value
+
   if (mode.value === 'passphrase') {
     try {
       password.value = generatePassphrase({
@@ -100,6 +108,13 @@ function regenerate() {
       })
     } catch {
       password.value = ''
+    }
+
+    if (password.value && password.value !== before) {
+      addToHistory({
+        kind: 'frase',
+        value: password.value,
+      })
     }
     return
   }
@@ -124,8 +139,58 @@ function regenerate() {
       })
     }
     password.value = out
+
+    if (password.value && password.value !== before) {
+      addToHistory({
+        kind: 'contrasena',
+        value: password.value,
+      })
+    }
   } catch {
     password.value = ''
+  }
+}
+
+function addToHistory({ kind, value }) {
+  const entry = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    ts: Date.now(),
+    kind,
+    value,
+  }
+
+  history.value = [entry, ...history.value].slice(0, HISTORY_LIMIT)
+  try {
+    localStorage.setItem('pg_history', JSON.stringify(history.value))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function clearHistory() {
+  history.value = []
+  try {
+    localStorage.removeItem('pg_history')
+  } catch {
+    // ignore
+  }
+}
+
+function applyTheme(next) {
+  const root = document.documentElement
+  root.dataset.theme = next
+}
+
+function formatTime(ts) {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+    }).format(new Date(ts))
+  } catch {
+    return ''
   }
 }
 
@@ -162,7 +227,35 @@ watch(
   }
 )
 
+watch(theme, (t) => {
+  try {
+    localStorage.setItem('pg_theme', t)
+  } catch {
+    // ignore
+  }
+  applyTheme(t)
+})
+
 onMounted(() => {
+  try {
+    const t = localStorage.getItem('pg_theme')
+    if (t === 'light' || t === 'dark' || t === 'system') theme.value = t
+  } catch {
+    // ignore
+  }
+
+  applyTheme(theme.value)
+
+  try {
+    const raw = localStorage.getItem('pg_history')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) history.value = parsed.slice(0, HISTORY_LIMIT)
+    }
+  } catch {
+    // ignore
+  }
+
   regenerate()
 })
 </script>
@@ -211,6 +304,7 @@ onMounted(() => {
             readonly
             autocomplete="off"
             spellcheck="false"
+            :type="reveal ? 'text' : 'password'"
           />
           <button class="btn" type="button" @click="regenerate" :disabled="!canGenerate">
             Generar
@@ -227,18 +321,32 @@ onMounted(() => {
             <span v-else>Copiar</span>
           </button>
         </div>
+        <div class="outputTools">
+          <label class="switch">
+            <input type="checkbox" v-model="reveal" />
+            <span>Mostrar</span>
+          </label>
+        </div>
         <div class="meta">
           <span class="chip" :data-tone="strengthTone">
             Fuerza: {{ strengthLabel }}
             <span class="chipHint">({{ Math.round(strengthBits) }} bits)</span>
           </span>
-          <span class="chip">Set: {{ charset.length }} chars</span>
         </div>
       </div>
 
       <div class="divider" role="separator" aria-orientation="horizontal" />
 
       <form class="controls" @submit.prevent>
+        <div class="row">
+          <label class="label" for="theme">Tema</label>
+          <select id="theme" class="select" v-model="theme">
+            <option value="system">Sistema</option>
+            <option value="dark">Oscuro</option>
+            <option value="light">Claro</option>
+          </select>
+        </div>
+
         <div v-if="mode === 'password'" class="row">
           <div class="field">
             <label class="label" for="length">Longitud</label>
@@ -314,7 +422,7 @@ onMounted(() => {
                 class="range"
                 type="range"
                 min="2"
-                max="10"
+                max="20"
                 step="1"
                 v-model.number="wordsCount"
               />
@@ -322,7 +430,7 @@ onMounted(() => {
                 class="number"
                 type="number"
                 min="2"
-                max="10"
+                max="20"
                 step="1"
                 v-model.number="wordsCount"
                 aria-label="Cantidad exacta"
@@ -341,6 +449,28 @@ onMounted(() => {
           Selecciona al menos un conjunto de caracteres
         </p>
       </form>
+
+      <div class="history" aria-label="Historial">
+        <div class="historyHead">
+          <div class="historyTitle">
+            <div class="label">Historial</div>
+            <div class="historyHint">Se guarda solo en este navegador</div>
+          </div>
+          <button class="btn btnGhost" type="button" @click="clearHistory" :disabled="history.length === 0">
+            Limpiar
+          </button>
+        </div>
+
+        <ul class="historyList">
+          <li v-for="h in history" :key="h.id" class="historyItem">
+            <div class="historyMeta">
+              <span class="historyKind">{{ h.kind }}</span>
+              <span class="historyTime">{{ formatTime(h.ts) }}</span>
+            </div>
+            <div class="historyValue" :title="h.value">{{ h.value }}</div>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <footer class="footer">
@@ -432,6 +562,11 @@ onMounted(() => {
 .output {
   display: grid;
   gap: 10px;
+}
+
+.outputTools {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .label {
@@ -529,6 +664,14 @@ onMounted(() => {
   gap: 12px;
 }
 
+.select {
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+}
+
 .row {
   display: grid;
   gap: 8px;
@@ -588,6 +731,67 @@ onMounted(() => {
 .error {
   margin: 0;
   color: rgba(255, 180, 180, 0.95);
+}
+
+.history {
+  margin-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.historyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.historyTitle {
+  display: grid;
+  gap: 4px;
+}
+
+.historyHint {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.historyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.historyItem {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.historyMeta {
+  display: flex;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.historyKind {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.historyValue {
+  margin-top: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer {

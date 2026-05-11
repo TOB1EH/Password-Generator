@@ -1,15 +1,29 @@
-Actúa como Ingeniero Senior (Vue 3).
+Actua como Ingeniero Senior (Vue 3).
 Path: /home/tobias/Documentos/OneDrive/workSpace/SOA/practico_opencode/password_generator/
 Repo: https://github.com/TOB1EH/Password-Generator.git. Usa Vue 3 + Vite.
-Objetivo: Generador de contraseñas seguras aleatorias.
-Generá el plan en fases-passwordgenerator.md.
-Al menos estas fases:
+Objetivo: Generador de contrasenas seguras aleatorias.
+
+Fases implementadas:
 1- Estructura + Auto-deploy
-2- Generador de contraseñas al estilo BitWarden (MVP)
-3- Opciones para generar la misma, una que sea una clave que se puedan agregar números o caracteres especiales, y se le pueda modificar la longitud.
-4- Otra opcion de generar frases (modo diccionario) con palabras random y estas generen una contraseña. Se debe poder elegir la cantidad de palabras.
-5- Botones para poder generar las contraseñas y otro para copiarla.
-6- Temas modo claro y oscuro, y un historial de contraseñas generadas
-7- Efecto de revelar contraseña, que se puedan poner como asteriscos. 
-8- Login/Logout
-No implementes todavía.
+2- Generador de contrasenas (MVP, estilo BitWarden)
+3- Clave base opcional + longitud configurable
+4- Modo frases con diccionario y cantidad de palabras
+5- Botones generar/copiar
+6- Temas claro/oscuro + historial persistente
+7- Revelar/ocultar contrasena
+8- (pendiente) Login/Logout
+
+Mejoras agregadas post-fases:
+- Boton de mostrar/ocultar dentro del campo de contrasena
+- Campo "Nombre" obligatorio antes de generar (etiqueta en historial)
+- Historial con nombre visible + contrasena mostrable/ocultable individualmente
+- Boton copiar en cada entrada del historial
+- Selector de idioma es/en para frases
+- Tema "system" respeta prefers-color-scheme
+- Temas migrados a tokens CSS para contraste correcto
+- Historial colapsable y persistente
+- IDs de historial con crypto.getRandomValues
+- Iconos SVG con lucide-vue-next (sin emojis)
+
+Pendiente:
+- Fase 8: Login/Logout (funcional en GitHub Pages sin backend)

@@ -15,6 +15,7 @@ Fases implementadas:
 
 Mejoras agregadas post-fases:
 - Boton de mostrar/ocultar dentro del campo de contrasena
+- Clave base de aplicacion automatica (sin necesidad de checkbox)
 - Campo "Nombre" obligatorio antes de generar (etiqueta en historial)
 - Historial con nombre visible + contrasena mostrable/ocultable individualmente
 - Boton copiar en cada entrada del historial

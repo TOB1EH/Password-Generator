@@ -28,7 +28,6 @@ const numbers = ref(true)
 const symbols = ref(false)
 
 const base = ref('')
-const preferBase = ref(false)
 
 const wordsCount = ref(4)
 const passphraseCapitalize = ref(false)
@@ -100,8 +99,6 @@ function sanitizeBase(input) {
 }
 
 function applyBaseStrategy({ outLength, charsetValue }) {
-  if (!preferBase.value) return null
-
   const b = sanitizeBase(base.value)
   if (!b) return null
 
@@ -284,7 +281,7 @@ async function copyToClipboard() {
 }
 
 watch(
-  [mode, length, lower, upper, numbers, symbols, base, preferBase, wordsCount, passphraseCapitalize, passphraseLang],
+  [mode, length, lower, upper, numbers, symbols, base, wordsCount, passphraseCapitalize, passphraseLang],
   () => {
   regenerate()
   }
@@ -507,13 +504,9 @@ onMounted(() => {
             autocomplete="off"
             spellcheck="false"
           />
-          <label class="switch">
-            <input type="checkbox" v-model="preferBase" />
-            <span>Usar clave base al inicio</span>
-          </label>
           <p class="help">
-            Si esta activo, la contrasena empieza con tu base (filtrada al set elegido)
-            y se completa con caracteres aleatorios
+            La contrasena empezara con tu clave base (filtrada al set elegido)
+            y se completara con caracteres aleatorios
           </p>
         </div>
 

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+
+# Herramientas locales
+.opencode/
+
+# Local env files
+.env
+.env.*

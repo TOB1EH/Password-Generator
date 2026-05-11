@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import {
   ChevronDown,
   ChevronUp,
+  Copy,
   Eye,
   EyeOff,
   Monitor,
@@ -31,7 +32,9 @@ const preferBase = ref(false)
 
 const wordsCount = ref(4)
 const passphraseCapitalize = ref(false)
+const passphraseLang = ref('es')
 
+const labelName = ref('')
 const password = ref('')
 const copyState = ref('idle')
 const reveal = ref(false)
@@ -39,6 +42,7 @@ const reveal = ref(false)
 const theme = ref('system')
 const history = ref([])
 const historyOpen = ref(true)
+const revealedIds = ref(new Set())
 
 const themeLabel = computed(() => {
   if (theme.value === 'light') return 'Claro'
@@ -59,7 +63,6 @@ const charset = computed(() =>
 
 const strengthBits = computed(() => {
   if (mode.value === 'passphrase') {
-    // Rough estimate: avg word length ~ 5, plus separators.
     const estimatedChars = Math.max(1, wordsCount.value) * 5 +
       Math.max(0, wordsCount.value - 1)
     return estimateStrengthBits({
@@ -87,10 +90,12 @@ const strengthTone = computed(() => {
   return 'bad'
 })
 
-const canGenerate = computed(() => charset.value.length > 0)
+const canGenerate = computed(() => {
+  if (mode.value === 'password') return charset.value.length > 0
+  return true
+})
 
 function sanitizeBase(input) {
-  // Keep it user-controlled, but avoid invisible whitespace surprises.
   return String(input ?? '').trim()
 }
 
@@ -100,8 +105,6 @@ function applyBaseStrategy({ outLength, charsetValue }) {
   const b = sanitizeBase(base.value)
   if (!b) return null
 
-  // Build a deterministic skeleton from the base, then fill remaining with random.
-  // We keep user characters that exist in the chosen charset; others are dropped.
   let kept = ''
   for (const ch of b) {
     if (charsetValue.includes(ch)) kept += ch
@@ -113,19 +116,17 @@ function applyBaseStrategy({ outLength, charsetValue }) {
 }
 
 function regenerate() {
-  const before = password.value
-
   if (mode.value === 'passphrase') {
     try {
       password.value = generatePassphrase({
         wordsCount: wordsCount.value,
         separator: '-',
         capitalize: passphraseCapitalize.value,
+        lang: passphraseLang.value,
       })
     } catch {
       password.value = ''
     }
-
     return
   }
 
@@ -149,28 +150,38 @@ function regenerate() {
       })
     }
     password.value = out
-
   } catch {
     password.value = ''
   }
 }
 
 function generateAndStore() {
+  const name = labelName.value.trim()
+  if (!name) {
+    labelName.value = ''
+    document.getElementById('labelName')?.focus()
+    return
+  }
+
   const before = password.value
   regenerate()
   if (!password.value || password.value === before) return
+
   addToHistory({
+    label: name,
     kind: mode.value === 'passphrase' ? 'frase' : 'contrasena',
     value: password.value,
   })
+
+  labelName.value = ''
 }
 
-function addToHistory({ kind, value }) {
-  // Only used for local UI history; does not affect password randomness.
+function addToHistory({ label, kind, value }) {
   const entry = {
     id: `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
     ts: Date.now(),
     kind,
+    label,
     value,
   }
 
@@ -184,10 +195,43 @@ function addToHistory({ kind, value }) {
 
 function clearHistory() {
   history.value = []
+  revealedIds.value = new Set()
   try {
     localStorage.removeItem('pg_history')
   } catch {
     // ignore
+  }
+}
+
+function toggleReveal(id) {
+  const s = new Set(revealedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  revealedIds.value = s
+}
+
+function isRevealed(id) {
+  return revealedIds.value.has(id)
+}
+
+function maskValue(val) {
+  return '\u2022'.repeat(Math.min(val.length, 128))
+}
+
+async function copyHistoryItem(item) {
+  if (!item.value) return
+  try {
+    await navigator.clipboard.writeText(item.value)
+  } catch {
+    const el = document.createElement('textarea')
+    el.value = item.value
+    el.setAttribute('readonly', 'true')
+    el.style.position = 'fixed'
+    el.style.top = '-9999px'
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
   }
 }
 
@@ -221,7 +265,6 @@ async function copyToClipboard() {
     await navigator.clipboard.writeText(password.value)
     copyState.value = 'copied'
   } catch {
-    // Fallback for older browsers or denied permission
     const el = document.createElement('textarea')
     el.value = password.value
     el.setAttribute('readonly', 'true')
@@ -241,9 +284,8 @@ async function copyToClipboard() {
 }
 
 watch(
-  [mode, length, lower, upper, numbers, symbols, base, preferBase, wordsCount, passphraseCapitalize],
+  [mode, length, lower, upper, numbers, symbols, base, preferBase, wordsCount, passphraseCapitalize, passphraseLang],
   () => {
-  // Keep the output fresh as options change.
   regenerate()
   }
 )
@@ -343,17 +385,46 @@ onMounted(() => {
       </div>
 
       <div class="output">
-        <label class="label" for="password">Contrasena generada</label>
-        <div class="outputRow">
+        <div class="labelRow">
+          <label class="label" for="labelName">Nombre</label>
           <input
-            id="password"
-            class="outputInput"
-            :value="password"
-            readonly
+            id="labelName"
+            class="text"
+            type="text"
+            v-model="labelName"
+            placeholder="Ej: Mi cuenta de Google"
             autocomplete="off"
             spellcheck="false"
-            :type="reveal ? 'text' : 'password'"
           />
+          <p v-if="labelName && !labelName.trim()" class="error" role="status">
+            Escribe un nombre para guardar
+          </p>
+        </div>
+
+        <label class="label" for="password">Contrasena generada</label>
+        <div class="outputRow">
+          <div class="inputWrap">
+            <input
+              id="password"
+              class="outputInput"
+              :value="password"
+              readonly
+              autocomplete="off"
+              spellcheck="false"
+              :type="reveal ? 'text' : 'password'"
+            />
+            <button
+              class="inputRevealBtn"
+              type="button"
+              @click="reveal = !reveal"
+              :aria-pressed="reveal"
+              :aria-label="reveal ? 'Ocultar' : 'Mostrar'"
+              :title="reveal ? 'Ocultar' : 'Mostrar'"
+            >
+              <EyeOff v-if="reveal" aria-hidden="true" :size="18" />
+              <Eye v-else aria-hidden="true" :size="18" />
+            </button>
+          </div>
           <button class="btn" type="button" @click="generateAndStore" :disabled="!canGenerate">
             Generar
           </button>
@@ -367,19 +438,6 @@ onMounted(() => {
             <span v-if="copyState === 'copied'">Copiado</span>
             <span v-else-if="copyState === 'error'">Error</span>
             <span v-else>Copiar</span>
-          </button>
-        </div>
-        <div class="outputTools">
-          <button
-            class="iconBtn iconBtnInline"
-            type="button"
-            @click="reveal = !reveal"
-            :aria-pressed="reveal"
-            :aria-label="reveal ? 'Ocultar' : 'Mostrar'"
-            :title="reveal ? 'Ocultar' : 'Mostrar'"
-          >
-            <EyeOff v-if="reveal" aria-hidden="true" class="iconSvg" :size="18" />
-            <Eye v-else aria-hidden="true" class="iconSvg" :size="18" />
           </button>
         </div>
         <div class="meta">
@@ -488,6 +546,27 @@ onMounted(() => {
             <input type="checkbox" v-model="passphraseCapitalize" />
             <span>Empezar palabras con mayuscula</span>
           </label>
+          <label class="label" for="passphraseLang">Idioma</label>
+          <div class="tabLangRow">
+            <button
+              class="tabLang"
+              type="button"
+              :class="{ tabLangActive: passphraseLang === 'es' }"
+              @click="passphraseLang = 'es'"
+              :aria-pressed="passphraseLang === 'es'"
+            >
+              Espanol
+            </button>
+            <button
+              class="tabLang"
+              type="button"
+              :class="{ tabLangActive: passphraseLang === 'en' }"
+              @click="passphraseLang = 'en'"
+              :aria-pressed="passphraseLang === 'en'"
+            >
+              English
+            </button>
+          </div>
           <p class="help">Separador: guion</p>
         </div>
 
@@ -525,17 +604,40 @@ onMounted(() => {
         <ul v-show="historyOpen" id="historyList" class="historyList">
           <li v-for="h in history" :key="h.id" class="historyItem">
             <div class="historyMeta">
-              <span class="historyKind">{{ h.kind }}</span>
               <span class="historyTime">{{ formatTime(h.ts) }}</span>
             </div>
-            <div class="historyValue" :title="h.value">{{ h.value }}</div>
+            <div class="historyLabel">{{ h.label }}</div>
+            <div class="historyRow">
+              <span class="historyValue">
+                {{ isRevealed(h.id) ? h.value : maskValue(h.value) }}
+              </span>
+              <button
+                class="historyIconBtn"
+                type="button"
+                @click="toggleReveal(h.id)"
+                :aria-label="isRevealed(h.id) ? 'Ocultar' : 'Mostrar'"
+                :title="isRevealed(h.id) ? 'Ocultar' : 'Mostrar'"
+              >
+                <EyeOff v-if="isRevealed(h.id)" aria-hidden="true" :size="16" />
+                <Eye v-else aria-hidden="true" :size="16" />
+              </button>
+              <button
+                class="historyIconBtn"
+                type="button"
+                @click="copyHistoryItem(h)"
+                :aria-label="'Copiar'"
+                :title="'Copiar'"
+              >
+                <Copy aria-hidden="true" :size="16" />
+              </button>
+            </div>
           </li>
         </ul>
       </div>
     </section>
 
     <footer class="footer">
-      <small>© {{ year }}</small>
+      <small>&copy; {{ year }}</small>
     </footer>
   </main>
 </template>
@@ -626,9 +728,9 @@ onMounted(() => {
   gap: 10px;
 }
 
-.outputTools {
-  display: flex;
-  justify-content: flex-end;
+.labelRow {
+  display: grid;
+  gap: 6px;
 }
 
 .label {
@@ -645,16 +747,42 @@ onMounted(() => {
   align-items: center;
 }
 
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
 .outputInput {
   width: 100%;
   min-width: 0;
-  padding: 12px 12px;
+  padding: 12px 44px 12px 12px;
   border-radius: 12px;
   border: 1px solid var(--border-strong);
   background: var(--surface-3);
   color: var(--fg);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   overflow-x: auto;
+}
+
+.inputRevealBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  transition: color 120ms ease;
+}
+
+.inputRevealBtn:hover {
+  color: var(--fg);
 }
 
 .btn {
@@ -818,9 +946,36 @@ onMounted(() => {
   height: 16px;
 }
 
+.tabLangRow {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.tabLang {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--fg-dim);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tabLangActive {
+  background: var(--btn);
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
 .error {
   margin: 0;
   color: rgba(255, 180, 180, 0.95);
+  font-size: 13px;
 }
 
 .history {
@@ -882,17 +1037,49 @@ onMounted(() => {
   letter-spacing: 0.08em;
 }
 
-.historyKind {
-  color: var(--fg-muted);
+.historyLabel {
+  font-weight: 600;
+  font-size: 15px;
+  margin: 2px 0 6px;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
 }
 
 .historyValue {
-  margin-top: 6px;
-  max-width: 100%;
+  flex: 1;
+  min-width: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   overflow-x: auto;
   white-space: nowrap;
   color: var(--fg);
+  font-size: 14px;
+}
+
+.historyIconBtn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.historyIconBtn:hover {
+  color: var(--fg);
+  background: var(--btn);
 }
 
 .footer {

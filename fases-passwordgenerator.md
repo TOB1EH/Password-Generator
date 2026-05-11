@@ -4,7 +4,7 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 ## [ ] Supuestos y notas
 
-- [ ] El repo objetivo es `https://github.com/TOB1EH/Password-Generator.git` y usa Vue 3 + Vite
+- [x] El repo objetivo es `https://github.com/TOB1EH/Password-Generator.git` y usa Vue 3 + Vite
 - [ ] La generación se hace del lado del cliente usando `crypto.getRandomValues`
 - [ ] El historial, temas y preferencias se persisten en `localStorage` hasta que Login/Logout requiera backend
 
@@ -45,6 +45,7 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [x] UI profesional y simple con preview, Generar y Copiar
 - [x] Longitud y flags (mayúsculas, minúsculas, números, símbolos)
 - [x] Indicador de fuerza (heurístico) y validaciones
+- [x] Longitud minima 8 caracteres
 
 ### [x] Criterios de aceptación
 
@@ -53,54 +54,63 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 ### [ ] Verificación
 
-- [ ] Probar longitudes y combinaciones
-- [ ] Probar copiar en desktop y mobile
+- [x] Probar longitudes y combinaciones
+- [x] Probar copiar en desktop y mobile
 
 ### [ ] Estado
 
 - [x] Implementado en el código
 - [x] Publicado en GitHub Pages
-- [ ] Probado en GitHub Pages
+- [x] Probado en GitHub Pages
 
-## [ ] Fase 3: Opciones con clave base y ajustes
+## [x] Fase 3: Opciones con clave base y ajustes
 
-### [ ] Objetivo
+### [x] Objetivo
 
-- [ ] Tomar una clave base y derivar variantes
+- [x] Tomar una clave base y derivar variantes
 
-### [ ] Alcance
+### [x] Alcance
 
-- [ ] Campo de clave base opcional
-- [ ] Agregar números, agregar símbolos, modificar longitud
-- [ ] Definir reglas de derivación (determinística o aleatoria)
+- [x] Campo de clave base opcional
+- [x] Agregar números, agregar símbolos, modificar longitud
+- [x] Definir reglas de derivación (determinística o aleatoria)
 
-### [ ] Criterios de aceptación
+### [ ] Estado
 
-- [ ] Respeta longitud y composición
-- [ ] UX explica si es determinístico o aleatorio
+- [x] Iniciada
+
+### [x] Criterios de aceptación
+
+- [x] Respeta longitud y composición
+- [x] UX explica si es determinístico o aleatorio
 
 ### [ ] Verificación
 
 - [ ] Base corta/larga, con y sin espacios, con especiales
 
-## [ ] Fase 4: Modo diccionario (frases)
+## [x] Fase 4: Modo diccionario (frases)
 
-### [ ] Objetivo
+### [x] Objetivo
 
-- [ ] Generar passphrases con palabras aleatorias
+- [x] Generar passphrases con palabras aleatorias
 
-### [ ] Alcance
+### [x] Alcance
 
-- [ ] Selector de cantidad de palabras
-- [ ] Diccionario embebido o importado (definir idioma y tamaño)
-- [ ] Separador por guiones (por defecto) y opción de capitalización
+- [x] Selector de cantidad de palabras
+- [x] Diccionario embebido o importado (definir idioma y tamaño)
+- [x] Separador por guiones (por defecto) y opción de capitalización
 
-### [ ] Criterios de aceptación
+### [ ] Estado
 
-- [ ] Aleatorio criptográficamente seguro
-- [ ] Frases separadas por guiones
-- [ ] Parametro para empezar con mayuscula o no
-- [ ] Performance razonable
+- [x] Iniciada
+- [x] Implementada
+
+### [x] Criterios de aceptación
+
+- [x] Aleatorio criptográficamente seguro
+- [x] Frases separadas por guiones
+- [x] Parametro para empezar con mayuscula o no
+- [x] Performance razonable
 
 ### [ ] Verificación
 

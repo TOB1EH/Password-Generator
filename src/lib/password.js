@@ -44,7 +44,7 @@ export function buildCharset({ lower, upper, numbers, symbols }) {
 }
 
 export function generatePassword({ length, charset }) {
-  if (!Number.isInteger(length) || length < 4 || length > 128) {
+  if (!Number.isInteger(length) || length < 8 || length > 128) {
     throw new Error('longitud fuera de rango')
   }
   if (!charset || charset.length < 2) {

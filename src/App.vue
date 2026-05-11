@@ -5,14 +5,23 @@ import {
   estimateStrengthBits,
   generatePassword,
 } from './lib/password.js'
+import { generatePassphrase } from './lib/passphrase.js'
 
 const year = new Date().getFullYear()
+
+const mode = ref('password')
 
 const length = ref(20)
 const lower = ref(true)
 const upper = ref(true)
 const numbers = ref(true)
 const symbols = ref(false)
+
+const base = ref('')
+const preferBase = ref(false)
+
+const wordsCount = ref(4)
+const passphraseCapitalize = ref(false)
 
 const password = ref('')
 const copyState = ref('idle')
@@ -26,9 +35,19 @@ const charset = computed(() =>
   })
 )
 
-const strengthBits = computed(() =>
-  estimateStrengthBits({ length: length.value, charsetSize: charset.value.length })
-)
+const strengthBits = computed(() => {
+  if (mode.value === 'passphrase') {
+    // Rough estimate: avg word length ~ 5, plus separators.
+    const estimatedChars = Math.max(1, wordsCount.value) * 5 +
+      Math.max(0, wordsCount.value - 1)
+    return estimateStrengthBits({
+      length: estimatedChars,
+      charsetSize: 2048,
+    })
+  }
+
+  return estimateStrengthBits({ length: length.value, charsetSize: charset.value.length })
+})
 
 const strengthLabel = computed(() => {
   const b = strengthBits.value
@@ -48,17 +67,63 @@ const strengthTone = computed(() => {
 
 const canGenerate = computed(() => charset.value.length > 0)
 
+function sanitizeBase(input) {
+  // Keep it user-controlled, but avoid invisible whitespace surprises.
+  return String(input ?? '').trim()
+}
+
+function applyBaseStrategy({ outLength, charsetValue }) {
+  if (!preferBase.value) return null
+
+  const b = sanitizeBase(base.value)
+  if (!b) return null
+
+  // Build a deterministic skeleton from the base, then fill remaining with random.
+  // We keep user characters that exist in the chosen charset; others are dropped.
+  let kept = ''
+  for (const ch of b) {
+    if (charsetValue.includes(ch)) kept += ch
+  }
+
+  if (!kept) return null
+
+  return kept.slice(0, outLength)
+}
+
 function regenerate() {
+  if (mode.value === 'passphrase') {
+    try {
+      password.value = generatePassphrase({
+        wordsCount: wordsCount.value,
+        separator: '-',
+        capitalize: passphraseCapitalize.value,
+      })
+    } catch {
+      password.value = ''
+    }
+    return
+  }
+
   if (!canGenerate.value) {
     password.value = ''
     return
   }
 
   try {
-    password.value = generatePassword({
-      length: length.value,
-      charset: charset.value,
+    const targetLen = length.value
+    const baseSeed = applyBaseStrategy({
+      outLength: targetLen,
+      charsetValue: charset.value,
     })
+
+    let out = baseSeed ?? ''
+    if (out.length < targetLen) {
+      out += generatePassword({
+        length: targetLen - out.length,
+        charset: charset.value,
+      })
+    }
+    password.value = out
   } catch {
     password.value = ''
   }
@@ -89,10 +154,13 @@ async function copyToClipboard() {
   }, 1200)
 }
 
-watch([length, lower, upper, numbers, symbols], () => {
+watch(
+  [mode, length, lower, upper, numbers, symbols, base, preferBase, wordsCount, passphraseCapitalize],
+  () => {
   // Keep the output fresh as options change.
   regenerate()
-})
+  }
+)
 
 onMounted(() => {
   regenerate()
@@ -112,6 +180,27 @@ onMounted(() => {
     </header>
 
     <section class="panel" aria-label="Generador de contrasenas">
+      <div class="tabs" role="tablist" aria-label="Modo">
+        <button
+          class="tab"
+          type="button"
+          role="tab"
+          :aria-selected="mode === 'password'"
+          @click="mode = 'password'"
+        >
+          Contrasena
+        </button>
+        <button
+          class="tab"
+          type="button"
+          role="tab"
+          :aria-selected="mode === 'passphrase'"
+          @click="mode = 'passphrase'"
+        >
+          Frase
+        </button>
+      </div>
+
       <div class="output">
         <label class="label" for="password">Contrasena generada</label>
         <div class="outputRow">
@@ -150,7 +239,7 @@ onMounted(() => {
       <div class="divider" role="separator" aria-orientation="horizontal" />
 
       <form class="controls" @submit.prevent>
-        <div class="row">
+        <div v-if="mode === 'password'" class="row">
           <div class="field">
             <label class="label" for="length">Longitud</label>
             <div class="rangeRow">
@@ -158,7 +247,7 @@ onMounted(() => {
                 id="length"
                 class="range"
                 type="range"
-                min="4"
+                min="8"
                 max="128"
                 step="1"
                 v-model.number="length"
@@ -166,7 +255,7 @@ onMounted(() => {
               <input
                 class="number"
                 type="number"
-                min="4"
+                min="8"
                 max="128"
                 step="1"
                 v-model.number="length"
@@ -176,7 +265,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="row switches">
+        <div v-if="mode === 'password'" class="row switches">
           <label class="switch">
             <input type="checkbox" v-model="lower" />
             <span>Minusculas</span>
@@ -195,7 +284,60 @@ onMounted(() => {
           </label>
         </div>
 
-        <p v-if="!canGenerate" class="error" role="status">
+        <div v-if="mode === 'password'" class="row">
+          <label class="label" for="base">Clave base (opcional)</label>
+          <input
+            id="base"
+            class="text"
+            type="text"
+            v-model="base"
+            placeholder="Ej: MiClaveBase"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <label class="switch">
+            <input type="checkbox" v-model="preferBase" />
+            <span>Usar clave base al inicio</span>
+          </label>
+          <p class="help">
+            Si esta activo, la contrasena empieza con tu base (filtrada al set elegido)
+            y se completa con caracteres aleatorios
+          </p>
+        </div>
+
+        <div v-if="mode === 'passphrase'" class="row">
+          <div class="field">
+            <label class="label" for="words">Cantidad de palabras</label>
+            <div class="rangeRow">
+              <input
+                id="words"
+                class="range"
+                type="range"
+                min="2"
+                max="10"
+                step="1"
+                v-model.number="wordsCount"
+              />
+              <input
+                class="number"
+                type="number"
+                min="2"
+                max="10"
+                step="1"
+                v-model.number="wordsCount"
+                aria-label="Cantidad exacta"
+              />
+            </div>
+          </div>
+
+          <label class="switch">
+            <input type="checkbox" v-model="passphraseCapitalize" />
+            <span>Empezar palabras con mayuscula</span>
+          </label>
+          <p class="help">Separador: guion</p>
+        </div>
+
+        <p v-if="mode === 'password' && !canGenerate" class="error" role="status">
           Selecciona al menos un conjunto de caracteres
         </p>
       </form>
@@ -262,6 +404,29 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 16px 60px rgba(0, 0, 0, 0.35);
   padding: 18px;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
+  margin-bottom: 14px;
+}
+
+.tab {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tab[aria-selected='true'] {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .output {
@@ -385,6 +550,20 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(0, 0, 0, 0.18);
+}
+
+.text {
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.help {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
 }
 
 .switches {

@@ -22,3 +22,14 @@ body {
 * {
   box-sizing: border-box;
 }
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(142, 189, 255, 0.9);
+  outline-offset: 2px;
+}

@@ -1,181 +1,206 @@
 # Plan por fases: Password Generator (Vue 3 + Vite)
 
-Contexto (según `planning.md`): objetivo es un generador de contraseñas seguras. Este documento solo define plan; no implementa.
+Contexto (según `planning.md`): objetivo es un generador de contraseñas seguras.
 
-## Supuestos y notas
+## [ ] Supuestos y notas
 
-- El repo objetivo es `https://github.com/TOB1EH/Password-Generator.git` y usa Vue 3 + Vite. En este workspace todavía no se observan los archivos del proyecto.
-- La generación se hace del lado del cliente (navegador) usando `crypto.getRandomValues`.
-- El historial, temas y preferencias se persisten en `localStorage` (hasta que Login/Logout requiera backend).
+- [ ] El repo objetivo es `https://github.com/TOB1EH/Password-Generator.git` y usa Vue 3 + Vite
+- [ ] La generación se hace del lado del cliente usando `crypto.getRandomValues`
+- [ ] El historial, temas y preferencias se persisten en `localStorage` hasta que Login/Logout requiera backend
 
-## Fase 1: Estructura + Auto-deploy
+## [x] Fase 1: Estructura + Auto-deploy
 
-Objetivo: tener base del proyecto lista, calidad mínima y deploy automático.
+### [x] Objetivo
 
-Alcance:
+- [x] Tener base del proyecto lista, calidad mínima y deploy automático
 
-- Estructura de proyecto Vite (Vue 3), rutas si aplica, y layout base.
-- Estándares de código: formatter/lint si el repo ya los usa (sin introducir herramientas innecesarias).
-- Auto-deploy (por definir según hosting): GitHub Pages (Actions), Netlify o Vercel.
+### [x] Alcance
 
-Criterios de aceptación:
+- [x] Scaffold Vite (Vue 3), layout base, scripts `dev/build/preview`
+- [x] Config de deploy para GitHub Pages (Actions)
 
-- `npm install` y `npm run dev` funcionan.
-- `npm run build` genera artefactos.
-- Deploy automático publica el sitio en cada push a la rama principal.
+### [x] Criterios de aceptación
 
-Verificación:
+- [x] `npm install` y `npm run dev` funcionan
+- [x] `npm run build` genera artefactos
+- [x] Deploy automático publica por push a `main`
 
-- Ejecutar `npm run build` local.
-- Confirmar workflow de CI/CD en el proveedor elegido.
+### [x] Verificación
 
-Estado (workspace actual): fase ejecutada. Se agregó el scaffold Vue 3 + Vite y un workflow de GitHub Pages.
+- [x] `npm run build` local
+- [x] Workflow de Pages en `.github/workflows/deploy.yml`
 
-## Fase 2: Generador estilo Bitwarden (MVP)
+### [x] Estado
 
-Objetivo: generar una contraseña aleatoria con configuración básica, UX clara y segura.
+- [x] Fase ejecutada en este workspace
 
-Alcance:
+## [x] Fase 2: Generador estilo Bitwarden (MVP)
 
-- UI simple: input/preview de contraseña, botón “Generar”, botón “Copiar”.
-- Parámetros MVP: longitud, incluir mayúsculas, minúsculas, números, símbolos.
-- Indicador de fuerza aproximado (heurístico) y validaciones (ej. longitud mínima).
+### [x] Objetivo
 
-Criterios de aceptación:
+- [x] Generar contraseña aleatoria con configuración básica y UX clara
 
-- Genera contraseñas usando `crypto.getRandomValues`.
-- No repite sesgos obvios (sin `Math.random`).
-- Copiar muestra feedback (toast/estado) y funciona en navegadores modernos.
+### [x] Alcance
 
-Verificación:
+- [x] UI profesional y simple con preview, Generar y Copiar
+- [x] Longitud y flags (mayúsculas, minúsculas, números, símbolos)
+- [x] Indicador de fuerza (heurístico) y validaciones
 
-- Probar múltiples longitudes y combinaciones de flags.
-- Probar copiar en desktop y mobile.
+### [x] Criterios de aceptación
 
-## Fase 3: Opciones “misma base” y ajustes (longitud y composición)
+- [x] Usa `crypto.getRandomValues` (no `Math.random`)
+- [x] Copiar funciona y muestra feedback
 
-Objetivo: soportar el flujo de “tomar una clave base” y derivar variantes.
+### [ ] Verificación
 
-Alcance:
+- [ ] Probar longitudes y combinaciones
+- [ ] Probar copiar en desktop y mobile
 
-- Campo “clave base” opcional.
-- Controles: agregar números, agregar símbolos, ajustar longitud.
-- Reglas claras para derivación (determinística o no): definir comportamiento esperado.
+### [ ] Estado
 
-Criterios de aceptación:
+- [x] Implementado en el código
+- [ ] Publicado en GitHub Pages
+- [ ] Probado en GitHub Pages
 
-- Si se provee clave base, el sistema genera una variante que respeta longitud y composición.
-- UX explica si el resultado es determinístico o aleatorio.
+## [ ] Fase 3: Opciones con clave base y ajustes
 
-Verificación:
+### [ ] Objetivo
 
-- Casos: base corta/larga, con/ sin espacios, con caracteres especiales.
+- [ ] Tomar una clave base y derivar variantes
 
-## Fase 4: Modo diccionario (frases)
+### [ ] Alcance
 
-Objetivo: generar passphrases con palabras aleatorias.
+- [ ] Campo de clave base opcional
+- [ ] Agregar números, agregar símbolos, modificar longitud
+- [ ] Definir reglas de derivación (determinística o aleatoria)
 
-Alcance:
+### [ ] Criterios de aceptación
 
-- Selector de cantidad de palabras.
-- Lista/diccionario embebido o importado (definir idioma y tamaño).
-- Separador configurable (espacio, guion, etc.) y opción de capitalización.
+- [ ] Respeta longitud y composición
+- [ ] UX explica si es determinístico o aleatorio
 
-Criterios de aceptación:
+### [ ] Verificación
 
-- Genera frases con `N` palabras de forma aleatoria criptográficamente segura.
-- Performance razonable (sin bloqueos) con diccionario moderado.
+- [ ] Base corta/larga, con y sin espacios, con especiales
 
-Verificación:
+## [ ] Fase 4: Modo diccionario (frases)
 
-- Probar `N` mínimo/máximo.
-- Probar en mobile.
+### [ ] Objetivo
 
-## Fase 5: Botones y flujo de generación/copiado (pulido)
+- [ ] Generar passphrases con palabras aleatorias
 
-Objetivo: completar UX de acciones principales.
+### [ ] Alcance
 
-Alcance:
+- [ ] Selector de cantidad de palabras
+- [ ] Diccionario embebido o importado (definir idioma y tamaño)
+- [ ] Separador por guiones (por defecto) y opción de capitalización
 
-- Botón “Generar” consistente para ambos modos.
-- Botón “Copiar” y estados: éxito/fallo.
-- Accesibilidad: foco, labels, aria, navegación por teclado.
+### [ ] Criterios de aceptación
 
-Criterios de aceptación:
+- [ ] Aleatorio criptográficamente seguro
+- [ ] Frases separadas por guiones
+- [ ] Parametro para empezar con mayuscula o no
+- [ ] Performance razonable
 
-- Todas las acciones son accesibles por teclado.
-- Mensajes de estado no dependen solo del color.
+### [ ] Verificación
 
-Verificación:
+- [ ] Probar mínimo y máximo de palabras
+- [ ] Probar en mobile
 
-- Tab traversal.
-- Lighthouse (si está disponible en el proyecto).
+## [ ] Fase 5: Flujo de generación y copiado (pulido)
 
-## Fase 6: Temas claro/oscuro + historial
+### [ ] Objetivo
 
-Objetivo: personalización y trazabilidad local.
+- [ ] Completar UX de acciones principales
 
-Alcance:
+### [ ] Alcance
 
-- Toggle de tema (respeta `prefers-color-scheme` si aplica).
-- Historial de contraseñas/passphrases generadas (con timestamps), con opción de limpiar.
-- Persistencia en `localStorage`.
+- [ ] Generar consistente para ambos modos
+- [ ] Estados de copiar (éxito/fallo)
+- [ ] Accesibilidad (foco, labels, aria, teclado)
 
-Criterios de aceptación:
+### [ ] Criterios de aceptación
 
-- El tema persiste entre sesiones.
-- El historial se limita (ej. 25-100 items) para evitar crecimiento infinito.
+- [ ] Accesible por teclado
+- [ ] Estados no dependen solo de color
 
-Verificación:
+### [ ] Verificación
 
-- Recargar página y confirmar persistencia.
-- Generar muchos items y confirmar límite.
+- [ ] Navegación con Tab
+- [ ] Lighthouse si está disponible
 
-## Fase 7: Revelar/ocultar contraseña (asteriscos)
+## [ ] Fase 6: Tema claro/oscuro e historial
 
-Objetivo: permitir ocultar el valor mostrado.
+### [ ] Objetivo
 
-Alcance:
+- [ ] Personalización y trazabilidad local
 
-- Toggle “Mostrar/Ocultar”.
-- Por defecto oculto si se decide priorizar privacidad.
+### [ ] Alcance
 
-Criterios de aceptación:
+- [ ] Toggle de tema (opcional: respeta `prefers-color-scheme`)
+- [ ] Historial con timestamps y opción de limpiar
+- [ ] Persistencia en `localStorage`
 
-- Ocultar no rompe copiar.
-- El campo no filtra accidentalmente por logs o UI secundaria.
+### [ ] Criterios de aceptación
 
-Verificación:
+- [ ] Tema persiste entre sesiones
+- [ ] Historial con límite para evitar crecimiento infinito
 
-- Probar copiar con ambos estados.
+### [ ] Verificación
 
-## Fase 8: Login/Logout
+- [ ] Recargar y confirmar persistencia
+- [ ] Generar muchos items y confirmar límite
 
-Objetivo: autenticación y sesión.
+## [ ] Fase 7: Revelar/ocultar contraseña
 
-Preguntas a resolver antes de implementar:
+### [ ] Objetivo
 
-- ¿Proveedor? (Firebase/Auth0/supabase/propio) o solo “login” local.
-- ¿Qué se protege? (historial, preferencias, sincronización).
+- [ ] Ocultar el valor mostrado con asteriscos
 
-Alcance (tentativo):
+### [ ] Alcance
 
-- UI de login/logout.
-- Estado de sesión y guardas si hay secciones protegidas.
-- Si hay backend: persistencia remota de historial/preferencias.
+- [ ] Toggle Mostrar/Ocultar
+- [ ] Definir estado por defecto (privacidad)
 
-Criterios de aceptación:
+### [ ] Criterios de aceptación
 
-- Login/logout funciona en entorno de deploy.
-- Datos sensibles no se exponen en cliente más allá de lo inevitable.
+- [ ] Ocultar no rompe copiar
+- [ ] No filtra el valor por UI secundaria
 
-Verificación:
+### [ ] Verificación
 
-- Probar flujo completo en producción (URL del deploy).
+- [ ] Copiar con ambos estados
 
-## Riesgos y decisiones pendientes
+## [ ] Fase 8: Login/Logout
 
-- Host de auto-deploy (GitHub Pages vs Netlify/Vercel).
-- Definición exacta de “misma contraseña” (determinística vs aleatoria a partir de base).
-- Idioma/tamaño del diccionario para passphrases.
-- Alcance real de Login/Logout (requiere definir backend o proveedor).
+### [ ] Objetivo
+
+- [ ] Autenticación y sesión
+
+### [ ] Preguntas
+
+- [ ] Proveedor (Firebase/Auth0/Supabase/propio) o login local
+- [ ] Qué se protege (historial, preferencias, sincronización)
+- [ ] Como administrar usuario administrador y seguridad en GitHub Pages
+
+### [ ] Alcance
+
+- [ ] UI de login/logout
+- [ ] Estado de sesión y guardas
+- [ ] Persistencia remota si hay backend
+
+### [ ] Criterios de aceptación
+
+- [ ] Login/logout funciona en deploy
+- [ ] Datos sensibles minimizados en cliente
+
+### [ ] Verificación
+
+- [ ] Probar flujo completo en producción
+
+## [ ] Riesgos y decisiones pendientes
+
+- [ ] Host de auto-deploy (GitHub Pages vs Netlify/Vercel)
+- [ ] Definir “misma contraseña” (determinística vs aleatoria desde base)
+- [ ] Definir idioma y tamaño del diccionario
+- [ ] Definir alcance real de Login/Logout

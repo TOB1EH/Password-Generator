@@ -59,7 +59,7 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 ### [ ] Estado
 
 - [x] Implementado en el código
-- [ ] Publicado en GitHub Pages
+- [x] Publicado en GitHub Pages
 - [ ] Probado en GitHub Pages
 
 ## [ ] Fase 3: Opciones con clave base y ajustes

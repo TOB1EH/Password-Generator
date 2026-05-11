@@ -1,6 +1,15 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import {
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
+  Monitor,
+  Moon,
+  Sun,
+} from 'lucide-vue-next'
+import {
   buildCharset,
   estimateStrengthBits,
   generatePassword,
@@ -30,6 +39,12 @@ const reveal = ref(false)
 const theme = ref('system')
 const history = ref([])
 const historyOpen = ref(true)
+
+const themeLabel = computed(() => {
+  if (theme.value === 'light') return 'Claro'
+  if (theme.value === 'dark') return 'Oscuro'
+  return 'Sistema'
+})
 
 const HISTORY_LIMIT = 50
 
@@ -296,10 +311,12 @@ onMounted(() => {
         class="iconBtn"
         type="button"
         @click="cycleTheme"
-        :aria-label="`Tema: ${theme}`"
-        :title="`Tema: ${theme}`"
+        :aria-label="`Cambiar tema (actual: ${themeLabel})`"
+        :title="`Cambiar tema (actual: ${themeLabel})`"
       >
-        <span aria-hidden="true" class="icon">{{ theme === 'light' ? 'Sun' : theme === 'dark' ? 'Moon' : 'Auto' }}</span>
+        <Sun v-if="theme === 'light'" aria-hidden="true" class="iconSvg" :size="18" />
+        <Moon v-else-if="theme === 'dark'" aria-hidden="true" class="iconSvg" :size="18" />
+        <Monitor v-else aria-hidden="true" class="iconSvg" :size="18" />
       </button>
     </header>
 
@@ -361,7 +378,8 @@ onMounted(() => {
             :aria-label="reveal ? 'Ocultar' : 'Mostrar'"
             :title="reveal ? 'Ocultar' : 'Mostrar'"
           >
-            <span aria-hidden="true" class="icon">{{ reveal ? 'Hide' : 'Show' }}</span>
+            <EyeOff v-if="reveal" aria-hidden="true" class="iconSvg" :size="18" />
+            <Eye v-else aria-hidden="true" class="iconSvg" :size="18" />
           </button>
         </div>
         <div class="meta">
@@ -495,7 +513,8 @@ onMounted(() => {
               :title="historyOpen ? 'Contraer' : 'Expandir'"
               :aria-label="historyOpen ? 'Contraer historial' : 'Expandir historial'"
             >
-              <span aria-hidden="true" class="icon">{{ historyOpen ? 'Up' : 'Down' }}</span>
+              <ChevronUp v-if="historyOpen" aria-hidden="true" class="iconSvg" :size="18" />
+              <ChevronDown v-else aria-hidden="true" class="iconSvg" :size="18" />
             </button>
             <button class="btn btnGhost" type="button" @click="clearHistory" :disabled="history.length === 0">
               Limpiar
@@ -621,13 +640,14 @@ onMounted(() => {
 
 .outputRow {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
 }
 
 .outputInput {
   width: 100%;
+  min-width: 0;
   padding: 12px 12px;
   border-radius: 12px;
   border: 1px solid var(--border-strong);
@@ -685,11 +705,8 @@ onMounted(() => {
   padding: 8px 10px;
 }
 
-.icon {
-  display: inline-block;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.iconSvg {
+  display: block;
 }
 
 .header .iconBtn {
@@ -812,6 +829,7 @@ onMounted(() => {
   padding-top: 16px;
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .historyHead {
@@ -842,6 +860,7 @@ onMounted(() => {
   padding: 0;
   margin: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 
@@ -850,6 +869,8 @@ onMounted(() => {
   background: var(--surface-2);
   border-radius: 12px;
   padding: 10px 12px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .historyMeta {
@@ -867,6 +888,7 @@ onMounted(() => {
 
 .historyValue {
   margin-top: 6px;
+  max-width: 100%;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   overflow-x: auto;
   white-space: nowrap;

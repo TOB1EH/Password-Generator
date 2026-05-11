@@ -29,6 +29,7 @@ const reveal = ref(false)
 
 const theme = ref('system')
 const history = ref([])
+const historyOpen = ref(true)
 
 const HISTORY_LIMIT = 50
 
@@ -110,12 +111,6 @@ function regenerate() {
       password.value = ''
     }
 
-    if (password.value && password.value !== before) {
-      addToHistory({
-        kind: 'frase',
-        value: password.value,
-      })
-    }
     return
   }
 
@@ -140,20 +135,25 @@ function regenerate() {
     }
     password.value = out
 
-    if (password.value && password.value !== before) {
-      addToHistory({
-        kind: 'contrasena',
-        value: password.value,
-      })
-    }
   } catch {
     password.value = ''
   }
 }
 
+function generateAndStore() {
+  const before = password.value
+  regenerate()
+  if (!password.value || password.value === before) return
+  addToHistory({
+    kind: mode.value === 'passphrase' ? 'frase' : 'contrasena',
+    value: password.value,
+  })
+}
+
 function addToHistory({ kind, value }) {
+  // Only used for local UI history; does not affect password randomness.
   const entry = {
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    id: `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
     ts: Date.now(),
     kind,
     value,
@@ -179,6 +179,12 @@ function clearHistory() {
 function applyTheme(next) {
   const root = document.documentElement
   root.dataset.theme = next
+}
+
+function cycleTheme() {
+  const order = ['system', 'dark', 'light']
+  const idx = Math.max(0, order.indexOf(theme.value))
+  theme.value = order[(idx + 1) % order.length]
 }
 
 function formatTime(ts) {
@@ -227,6 +233,14 @@ watch(
   }
 )
 
+watch(historyOpen, (open) => {
+  try {
+    localStorage.setItem('pg_history_open', open ? '1' : '0')
+  } catch {
+    // ignore
+  }
+})
+
 watch(theme, (t) => {
   try {
     localStorage.setItem('pg_theme', t)
@@ -245,6 +259,13 @@ onMounted(() => {
   }
 
   applyTheme(theme.value)
+
+  try {
+    const open = localStorage.getItem('pg_history_open')
+    if (open === '0') historyOpen.value = false
+  } catch {
+    // ignore
+  }
 
   try {
     const raw = localStorage.getItem('pg_history')
@@ -270,6 +291,16 @@ onMounted(() => {
           <p class="subtitle">Genera contrasenas aleatorias seguras</p>
         </div>
       </div>
+
+      <button
+        class="iconBtn"
+        type="button"
+        @click="cycleTheme"
+        :aria-label="`Tema: ${theme}`"
+        :title="`Tema: ${theme}`"
+      >
+        <span aria-hidden="true" class="icon">{{ theme === 'light' ? 'Sun' : theme === 'dark' ? 'Moon' : 'Auto' }}</span>
+      </button>
     </header>
 
     <section class="panel" aria-label="Generador de contrasenas">
@@ -306,7 +337,7 @@ onMounted(() => {
             spellcheck="false"
             :type="reveal ? 'text' : 'password'"
           />
-          <button class="btn" type="button" @click="regenerate" :disabled="!canGenerate">
+          <button class="btn" type="button" @click="generateAndStore" :disabled="!canGenerate">
             Generar
           </button>
           <button
@@ -322,10 +353,16 @@ onMounted(() => {
           </button>
         </div>
         <div class="outputTools">
-          <label class="switch">
-            <input type="checkbox" v-model="reveal" />
-            <span>Mostrar</span>
-          </label>
+          <button
+            class="iconBtn iconBtnInline"
+            type="button"
+            @click="reveal = !reveal"
+            :aria-pressed="reveal"
+            :aria-label="reveal ? 'Ocultar' : 'Mostrar'"
+            :title="reveal ? 'Ocultar' : 'Mostrar'"
+          >
+            <span aria-hidden="true" class="icon">{{ reveal ? 'Hide' : 'Show' }}</span>
+          </button>
         </div>
         <div class="meta">
           <span class="chip" :data-tone="strengthTone">
@@ -338,15 +375,6 @@ onMounted(() => {
       <div class="divider" role="separator" aria-orientation="horizontal" />
 
       <form class="controls" @submit.prevent>
-        <div class="row">
-          <label class="label" for="theme">Tema</label>
-          <select id="theme" class="select" v-model="theme">
-            <option value="system">Sistema</option>
-            <option value="dark">Oscuro</option>
-            <option value="light">Claro</option>
-          </select>
-        </div>
-
         <div v-if="mode === 'password'" class="row">
           <div class="field">
             <label class="label" for="length">Longitud</label>
@@ -456,12 +484,26 @@ onMounted(() => {
             <div class="label">Historial</div>
             <div class="historyHint">Se guarda solo en este navegador</div>
           </div>
-          <button class="btn btnGhost" type="button" @click="clearHistory" :disabled="history.length === 0">
-            Limpiar
-          </button>
+
+          <div class="historyActions">
+            <button
+              class="iconBtn iconBtnInline"
+              type="button"
+              @click="historyOpen = !historyOpen"
+              :aria-expanded="historyOpen"
+              aria-controls="historyList"
+              :title="historyOpen ? 'Contraer' : 'Expandir'"
+              :aria-label="historyOpen ? 'Contraer historial' : 'Expandir historial'"
+            >
+              <span aria-hidden="true" class="icon">{{ historyOpen ? 'Up' : 'Down' }}</span>
+            </button>
+            <button class="btn btnGhost" type="button" @click="clearHistory" :disabled="history.length === 0">
+              Limpiar
+            </button>
+          </div>
         </div>
 
-        <ul class="historyList">
+        <ul v-show="historyOpen" id="historyList" class="historyList">
           <li v-for="h in history" :key="h.id" class="historyItem">
             <div class="historyMeta">
               <span class="historyKind">{{ h.kind }}</span>
@@ -491,6 +533,7 @@ onMounted(() => {
 .header {
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .brand {
@@ -524,14 +567,14 @@ onMounted(() => {
 
 .subtitle {
   margin: 0;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--fg-muted);
 }
 
 .panel {
   width: min(920px, calc(100vw - 32px));
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface);
   box-shadow: 0 16px 60px rgba(0, 0, 0, 0.35);
   padding: 18px;
 }
@@ -541,8 +584,8 @@ onMounted(() => {
   gap: 6px;
   padding: 6px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
   margin-bottom: 14px;
 }
 
@@ -555,8 +598,8 @@ onMounted(() => {
 }
 
 .tab[aria-selected='true'] {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-strong);
+  background: var(--btn);
 }
 
 .output {
@@ -573,7 +616,7 @@ onMounted(() => {
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--fg-muted);
 }
 
 .outputRow {
@@ -587,22 +630,24 @@ onMounted(() => {
   width: 100%;
   padding: 12px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.18);
-  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-3);
+  color: var(--fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  overflow-x: auto;
 }
 
 .btn {
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-strong);
+  background: var(--btn);
   cursor: pointer;
   transition: transform 80ms ease, background 120ms ease;
 }
 
 .btn:hover:enabled {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--btn-hover);
 }
 
 .btn:active:enabled {
@@ -618,6 +663,42 @@ onMounted(() => {
   background: transparent;
 }
 
+.iconBtn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--fg);
+  border-radius: 12px;
+  padding: 10px 10px;
+  cursor: pointer;
+  transition: transform 80ms ease, background 120ms ease;
+}
+
+.iconBtn:hover:enabled {
+  background: var(--btn-hover);
+}
+
+.iconBtn:active:enabled {
+  transform: translateY(1px);
+}
+
+.iconBtnInline {
+  padding: 8px 10px;
+}
+
+.icon {
+  display: inline-block;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header .iconBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
@@ -628,13 +709,13 @@ onMounted(() => {
 .chip {
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
   font-size: 13px;
 }
 
 .chipHint {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--fg-dim);
 }
 
 .chip[data-tone='good'] {
@@ -655,21 +736,13 @@ onMounted(() => {
 
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border);
   margin: 16px 0;
 }
 
 .controls {
   display: grid;
   gap: 12px;
-}
-
-.select {
-  width: 100%;
-  padding: 10px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.18);
 }
 
 .row {
@@ -691,21 +764,21 @@ onMounted(() => {
 .number {
   padding: 10px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-3);
 }
 
 .text {
   width: 100%;
   padding: 10px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-3);
 }
 
 .help {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--fg-dim);
   font-size: 13px;
 }
 
@@ -717,8 +790,8 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
   padding: 10px 12px;
   border-radius: 12px;
 }
@@ -735,7 +808,7 @@ onMounted(() => {
 
 .history {
   margin-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--border);
   padding-top: 16px;
   display: grid;
   gap: 12px;
@@ -753,8 +826,14 @@ onMounted(() => {
   gap: 4px;
 }
 
+.historyActions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .historyHint {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--fg-dim);
   font-size: 13px;
 }
 
@@ -767,8 +846,8 @@ onMounted(() => {
 }
 
 .historyItem {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
   border-radius: 12px;
   padding: 10px 12px;
 }
@@ -776,28 +855,28 @@ onMounted(() => {
 .historyMeta {
   display: flex;
   gap: 10px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--fg-dim);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .historyKind {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--fg-muted);
 }
 
 .historyValue {
   margin-top: 6px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
   white-space: nowrap;
+  color: var(--fg);
 }
 
 .footer {
   display: flex;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--fg-dim);
 }
 
 @media (max-width: 680px) {

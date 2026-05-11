@@ -5,7 +5,18 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color: rgba(255, 255, 255, 0.92);
+  --fg: rgba(255, 255, 255, 0.92);
+  --fg-muted: rgba(255, 255, 255, 0.78);
+  --fg-dim: rgba(255, 255, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(0, 0, 0, 0.12);
+  --surface-3: rgba(0, 0, 0, 0.18);
+  --btn: rgba(255, 255, 255, 0.12);
+  --btn-hover: rgba(255, 255, 255, 0.18);
+
+  color: var(--fg);
   background: radial-gradient(1000px 600px at 10% 10%, #173a6b 0%, transparent 65%),
     radial-gradient(900px 600px at 90% 10%, #3b1d7a 0%, transparent 60%),
     #0b1020;
@@ -17,7 +28,19 @@
 
 :root[data-theme='light'] {
   color-scheme: light;
-  color: rgba(10, 12, 18, 0.92);
+
+  --fg: rgba(10, 12, 18, 0.92);
+  --fg-muted: rgba(10, 12, 18, 0.72);
+  --fg-dim: rgba(10, 12, 18, 0.6);
+  --border: rgba(10, 12, 18, 0.12);
+  --border-strong: rgba(10, 12, 18, 0.14);
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-2: rgba(255, 255, 255, 0.62);
+  --surface-3: rgba(255, 255, 255, 0.86);
+  --btn: rgba(255, 255, 255, 0.7);
+  --btn-hover: rgba(255, 255, 255, 0.92);
+
+  color: var(--fg);
   background: radial-gradient(900px 500px at 10% 10%, #cfe6ff 0%, transparent 60%),
     radial-gradient(800px 520px at 90% 0%, #f2d7ff 0%, transparent 60%),
     #f7f8fb;
@@ -26,6 +49,28 @@
 :root[data-theme='system'] {
   /* Uses the default :root styles and respects OS settings.
      Keep dataset value for persistence and styling hooks. */
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    color-scheme: light;
+
+    --fg: rgba(10, 12, 18, 0.92);
+    --fg-muted: rgba(10, 12, 18, 0.72);
+    --fg-dim: rgba(10, 12, 18, 0.6);
+    --border: rgba(10, 12, 18, 0.12);
+    --border-strong: rgba(10, 12, 18, 0.14);
+    --surface: rgba(255, 255, 255, 0.72);
+    --surface-2: rgba(255, 255, 255, 0.62);
+    --surface-3: rgba(255, 255, 255, 0.86);
+    --btn: rgba(255, 255, 255, 0.7);
+    --btn-hover: rgba(255, 255, 255, 0.92);
+
+    color: var(--fg);
+    background: radial-gradient(900px 500px at 10% 10%, #cfe6ff 0%, transparent 60%),
+      radial-gradient(800px 520px at 90% 0%, #f2d7ff 0%, transparent 60%),
+      #f7f8fb;
+  }
 }
 
 body {

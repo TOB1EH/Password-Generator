@@ -6,6 +6,17 @@ Generador de contraseñas y frases de acceso seguras, cifradas y profesionales. 
 
 ---
 
+## Stack Tecnológico
+
+[![Vue 3](https://img.shields.io/badge/Vue%203-35495e?style=for-the-badge&logo=vue.js)](https://vuejs.org)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=3ECF8E)](https://supabase.com)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222?style=for-the-badge&logo=github&logoColor=white)](https://pages.github.com)
+
+---
+
 ## Características principales
 
 - **Generador de contraseñas**: Crea contraseñas aleatorias configurables (longitud, mayúsculas, minúsculas, números, símbolos)
@@ -183,30 +194,6 @@ npm run lint     # Linter (si está configurado)
 
 ---
 
-## Cambio de Log
-
-### Fase 10: Mejoras de Frontend
-- Reemplazado emoji (🔐) por icono Lock profesional (lucide-vue-next)
-- Agregado modal de confirmación reutilizable (`ConfirmDialog.vue`)
-- Confirmación en "Limpiar todo" y "Eliminar individual"
-- Backdrop modal opaco (no transparente)
-- Arreglo de layout mobile (header no se superpone)
-
-### Fase 9: Persistencia con Supabase
-- Autenticación real de Supabase (reemplazó simulación)
-- Historial cifrado con AES-GCM en cliente
-- Table `password_history` con RLS
-- Cifrado simétrico con PBKDF2
-
-### Fases 1-8: Funcionalidades Core
-- Generador de contraseñas y frases
-- Tema claro/oscuro
-- Historial con copiado
-- Login/logout básico
-- Deploy automático en GitHub Pages
-
----
-
 ## Notas de desarrollo
 
 ### Generación criptográfica
@@ -242,7 +229,6 @@ Proyecto de código abierto bajo licencia MIT. Úsalo libremente para fines educ
 
 - Desarrollado por **Tobias Funes**
 - Herramientas: [OpenCode](https://opencode.ai) y [Plannotator](https://plannotator.ai)
-- Construido con ❤️ en 2026
 
 ---
 

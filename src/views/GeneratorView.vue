@@ -18,9 +18,11 @@ import {
   generatePassword,
 } from '../lib/password.js'
 import { generatePassphrase } from '../lib/passphrase.js'
+import { supabase } from '../lib/supabase.js'
+import { deriveKey, encryptData, decryptData } from '../lib/crypto.js'
 
 const router = useRouter()
-const username = ref(localStorage.getItem('opencode_username') || 'Usuario')
+const username = ref('Administrador')
 
 const year = new Date().getFullYear()
 
@@ -47,6 +49,8 @@ const theme = ref('system')
 const history = ref([])
 const historyOpen = ref(true)
 const revealedIds = ref(new Set())
+
+let sessionKey = null
 
 const themeLabel = computed(() => {
   if (theme.value === 'light') return 'Claro'
@@ -117,9 +121,10 @@ function applyBaseStrategy({ outLength, charsetValue }) {
   return kept.slice(0, outLength)
 }
 
-function handleLogout() {
-  localStorage.removeItem('opencode_auth_token')
-  localStorage.removeItem('opencode_username')
+async function handleLogout() {
+  await supabase.auth.signOut()
+  sessionStorage.removeItem('pg_master_key')
+  sessionKey = null
   router.push('/login')
 }
 
@@ -163,7 +168,40 @@ function regenerate() {
   }
 }
 
-function generateAndStore() {
+async function loadHistoryFromSupabase() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session || !sessionKey) return
+
+  const { data, error } = await supabase
+    .from('password_history')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(HISTORY_LIMIT)
+
+  if (error) {
+    console.error('Error fetching history:', error)
+    return
+  }
+
+  const decryptedHistory = []
+  for (const row of data) {
+    try {
+      const decryptedValue = await decryptData(sessionKey, row.encrypted_value)
+      decryptedHistory.push({
+        id: row.id,
+        ts: new Date(row.created_at).getTime(),
+        label: row.label,
+        kind: row.kind,
+        value: decryptedValue
+      })
+    } catch (err) {
+      console.error('Error decrypting row', row.id)
+    }
+  }
+  history.value = decryptedHistory
+}
+
+async function generateAndStore() {
   const name = labelName.value.trim()
   if (!name) {
     labelName.value = ''
@@ -175,7 +213,7 @@ function generateAndStore() {
   regenerate()
   if (!password.value || password.value === before) return
 
-  addToHistory({
+  await addToHistory({
     label: name,
     kind: mode.value === 'passphrase' ? 'frase' : 'contrasena',
     value: password.value,
@@ -184,30 +222,54 @@ function generateAndStore() {
   labelName.value = ''
 }
 
-function addToHistory({ label, kind, value }) {
-  const entry = {
-    id: `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
-    ts: Date.now(),
-    kind,
-    label,
-    value,
-  }
+async function addToHistory({ label, kind, value }) {
+  if (!sessionKey) return
 
-  history.value = [entry, ...history.value].slice(0, HISTORY_LIMIT)
   try {
-    localStorage.setItem('pg_history', JSON.stringify(history.value))
-  } catch {
-    // ignore storage errors
+    const encrypted_value = await encryptData(sessionKey, value)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data, error } = await supabase
+      .from('password_history')
+      .insert({
+        user_id: session.user.id,
+        label,
+        kind,
+        encrypted_value
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    const entry = {
+      id: data.id,
+      ts: new Date(data.created_at).getTime(),
+      kind,
+      label,
+      value,
+    }
+
+    history.value = [entry, ...history.value].slice(0, HISTORY_LIMIT)
+  } catch (err) {
+    console.error('Error adding to history', err)
   }
 }
 
-function clearHistory() {
+async function clearHistory() {
   history.value = []
   revealedIds.value = new Set()
   try {
-    localStorage.removeItem('pg_history')
-  } catch {
-    // ignore
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase
+        .from('password_history')
+        .delete()
+        .eq('user_id', session.user.id)
+    }
+  } catch (err) {
+    console.error('Error clearing history', err)
   }
 }
 
@@ -315,7 +377,7 @@ watch(theme, (t) => {
   applyTheme(t)
 })
 
-onMounted(() => {
+onMounted(async () => {
   try {
     const t = localStorage.getItem('pg_theme')
     if (t === 'light' || t === 'dark' || t === 'system') theme.value = t
@@ -332,20 +394,30 @@ onMounted(() => {
     // ignore
   }
 
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    router.push('/login')
+    return
+  }
+
+  const masterPass = sessionStorage.getItem('pg_master_key')
+  if (!masterPass) {
+    // Si la sesión existe pero se perdió la clave de desencriptado (ej. cerró la pestaña pero la cookie duró)
+    // forzamos al usuario a volver a loguearse para obtener la contraseña de la que derivamos la clave
+    await handleLogout()
+    return
+  }
+
   try {
-    const raw = localStorage.getItem('pg_history')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) history.value = parsed.slice(0, HISTORY_LIMIT)
-    }
-  } catch {
-    // ignore
+    sessionKey = await deriveKey(masterPass)
+    await loadHistoryFromSupabase()
+  } catch (err) {
+    console.error('Error al inicializar sesión cifrada', err)
   }
 
   regenerate()
 })
 </script>
-
 <template>
   <main class="page">
     <header class="header">

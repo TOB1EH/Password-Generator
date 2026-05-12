@@ -1,22 +1,40 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '../lib/supabase.js'
 
 const router = useRouter()
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const error = ref('')
+const loading = ref(false)
 
-function handleLogin() {
-  // Simulacion muy simple para demostracion sin backend.
-  // En un caso real se validaria contra una API.
-  if (username.value.trim() !== '' && password.value.trim() !== '') {
-    localStorage.setItem('opencode_auth_token', 'simulated_token_123')
-    localStorage.setItem('opencode_username', username.value.trim())
-    router.push('/')
-  } else {
+async function handleLogin() {
+  if (email.value.trim() === '' || password.value.trim() === '') {
     error.value = 'Por favor, completa ambos campos.'
+    return
   }
+
+  loading.value = true
+  error.value = ''
+
+  const { data, error: err } = await supabase.auth.signInWithPassword({
+    email: email.value.trim(),
+    password: password.value
+  })
+
+  loading.value = false
+
+  if (err) {
+    error.value = 'Error al iniciar sesion. Revisa tus credenciales.'
+    return
+  }
+
+  // Guardamos la contrasena en sessionStorage para derivar la clave de cifrado
+  // al momento de guardar o leer del historial durante esta sesion.
+  sessionStorage.setItem('pg_master_key', password.value)
+  
+  router.push('/')
 }
 </script>
 
@@ -32,14 +50,15 @@ function handleLogin() {
 
       <form @submit.prevent="handleLogin" class="controls">
         <div class="row">
-          <label class="label" for="username">Usuario</label>
+          <label class="label" for="email">Correo Electronico</label>
           <input
-            id="username"
+            id="email"
             class="text"
-            type="text"
-            v-model="username"
-            placeholder="Introduce tu usuario"
-            autocomplete="username"
+            type="email"
+            v-model="email"
+            placeholder="Introduce tu correo"
+            autocomplete="email"
+            required
           />
         </div>
 
@@ -52,16 +71,16 @@ function handleLogin() {
             v-model="password"
             placeholder="Introduce tu contrasena"
             autocomplete="current-password"
+            required
           />
         </div>
 
         <p v-if="error" class="error" role="status">{{ error }}</p>
 
-        <button class="btn btn-block" type="submit">Ingresar</button>
+        <button class="btn btn-block" type="submit" :disabled="loading">
+          {{ loading ? 'Ingresando...' : 'Ingresar' }}
+        </button>
       </form>
-      <p class="help text-center" style="margin-top: 16px;">
-        Nota: Esta es una simulacion. Puedes ingresar cualquier usuario y contrasena.
-      </p>
     </div>
   </main>
 </template>
@@ -157,12 +176,17 @@ function handleLogin() {
   color: var(--fg);
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--btn-hover);
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-block {
@@ -174,16 +198,6 @@ function handleLogin() {
   margin: 0;
   color: rgba(255, 180, 180, 0.95);
   font-size: 13px;
-  text-align: center;
-}
-
-.help {
-  margin: 0;
-  color: var(--fg-dim);
-  font-size: 13px;
-}
-
-.text-center {
   text-align: center;
 }
 </style>

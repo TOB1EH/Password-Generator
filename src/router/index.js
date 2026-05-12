@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import GeneratorView from '../views/GeneratorView.vue'
 import LoginView from '../views/LoginView.vue'
+import { supabase } from '../lib/supabase.js'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -20,8 +21,9 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('opencode_auth_token') === 'simulated_token_123'
+router.beforeEach(async (to, from, next) => {
+  const { data: { session } } = await supabase.auth.getSession()
+  const isAuthenticated = !!session
   
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')

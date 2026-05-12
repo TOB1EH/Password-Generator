@@ -5,8 +5,8 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 ## [ ] Supuestos y notas
 
 - [x] El repo objetivo es `https://github.com/TOB1EH/Password-Generator.git` y usa Vue 3 + Vite
-- [ ] La generación se hace del lado del cliente usando `crypto.getRandomValues`
-- [ ] El historial, temas y preferencias se persisten en `localStorage` hasta que Login/Logout requiera backend
+- [x] La generación se hace del lado del cliente usando `crypto.getRandomValues`
+- [x] El historial, temas y preferencias se persisten en `localStorage` hasta que Login/Logout requiera backend
 
 ## [x] Fase 1: Estructura + Auto-deploy
 
@@ -112,10 +112,10 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [x] Parametro para empezar con mayuscula o no
 - [x] Performance razonable
 
-### [ ] Verificación
+### [x] Verificación
 
 - [x] Probar mínimo y máximo de palabras
-- [ ] Probar en mobile
+- [x] Probar en mobile
 
 ## [x] Fase 5: Flujo de generación y copiado (pulido)
 
@@ -134,9 +134,9 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [x] Accesible por teclado
 - [x] Estados no dependen solo de color
 
-### [ ] Verificación
+### [x] Verificación
 
-- [ ] Navegación con Tab
+- [x] Navegación con Tab
 - [ ] Lighthouse si está disponible
 
 ### [ ] Estado
@@ -160,10 +160,10 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [x] Tema persiste entre sesiones
 - [x] Historial con límite para evitar crecimiento infinito
 
-### [ ] Verificación
+### [x] Verificación
 
-- [ ] Recargar y confirmar persistencia
-- [ ] Generar muchos items y confirmar límite
+- [x] Recargar y confirmar persistencia
+- [x] Generar muchos items y confirmar límite
 
 ### [ ] Estado
 
@@ -185,9 +185,9 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [x] Ocultar no rompe copiar
 - [x] No filtra el valor por UI secundaria
 
-### [ ] Verificación
+### [x] Verificación
 
-- [ ] Copiar con ambos estados
+- [x] Copiar con ambos estados
 
 ### [ ] Estado
 
@@ -220,9 +220,35 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 - [x] Probar flujo completo en producción
 
+## [ ] Fase 9: Persistencia con Supabase (Backend/BBDD)
+
+### [ ] Objetivo
+
+- [ ] Migrar el almacenamiento de contraseñas de `localStorage` a una base de datos relacional PostgreSQL en Supabase.
+- [ ] Implementar autenticación real para un único usuario administrador.
+
+### [ ] Alcance
+
+- [ ] Configurar el cliente de Supabase en el proyecto Vue.
+- [ ] Autenticación de Supabase (Login real, protección de rutas).
+- [ ] Crear tabla de historial de contraseñas en Supabase (con RLS para el admin).
+- [ ] Lógica de cifrado simétrico: las contraseñas deben cifrarse/desencriptarse en el cliente (usando una clave maestra o derivada) antes de guardarse en Supabase, para que ni siquiera teniendo acceso a la DB se puedan leer en texto plano.
+
+### [ ] Criterios de aceptación
+
+- [ ] El usuario ingresa con credenciales reales (administrador).
+- [ ] El historial se sincroniza y se lee desde Supabase.
+- [ ] Las contraseñas en la base de datos están cifradas ("hasheadas" o encriptadas reversiblemente si se necesitan ver, ver notas).
+- [ ] Sigue funcionando en GitHub Pages.
+
+### [ ] Verificación
+
+- [ ] Verificar inserción, lectura y borrado en el dashboard de Supabase.
+- [ ] Probar el cierre de sesión y protección de ruta raíz con sesión real.
+
 ## [ ] Riesgos y decisiones pendientes
 
-- [ ] Host de auto-deploy (GitHub Pages vs Netlify/Vercel)
+- [x] Host de auto-deploy: GitHub Pages
 - [ ] Definir “misma contraseña” (determinística vs aleatoria desde base)
-- [ ] Definir idioma y tamaño del diccionario
-- [ ] Definir alcance real de Login/Logout
+- [x] Definir idioma y tamaño del diccionario: Inglés y español (diccionario grande)
+- [x] Definir alcance real de Login/Logout: Crear usuario administrador unicamente, es una plataforma personal donde solo yo puedo loguearme.

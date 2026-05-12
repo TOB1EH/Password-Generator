@@ -259,6 +259,9 @@ async function addToHistory({ label, kind, value }) {
 }
 
 async function clearHistory() {
+  const confirmed = confirm('¿Estás seguro de que quieres eliminar TODO el historial? Esta acción no se puede deshacer.')
+  if (!confirmed) return
+
   history.value = []
   revealedIds.value = new Set()
   try {

@@ -220,32 +220,6 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 - [x] Probar flujo completo en producción
 
-## [ ] Fase 9: Persistencia con Supabase (Backend/BBDD)
-
-### [ ] Objetivo
-
-- [ ] Implementar el almacenamiento de nuevas contraseñas en una base de datos relacional PostgreSQL en Supabase (la base de datos arrancará vacía, no se migrarán los datos de prueba de `localStorage`).
-- [ ] Implementar autenticación real para un único usuario administrador.
-
-### [ ] Alcance
-
-- [ ] Configurar el cliente de Supabase en el proyecto Vue.
-- [ ] Autenticación de Supabase (Login real, protección de rutas).
-- [ ] Crear tabla de historial de contraseñas en Supabase (con RLS para el admin).
-- [ ] Lógica de cifrado simétrico: las contraseñas deben cifrarse/desencriptarse en el cliente (usando una clave maestra o derivada) antes de guardarse en Supabase, para que ni siquiera teniendo acceso a la DB se puedan leer en texto plano.
-
-### [ ] Criterios de aceptación
-
-- [ ] El usuario ingresa con credenciales reales (administrador).
-- [ ] El historial se sincroniza y se lee desde Supabase.
-- [ ] Las contraseñas en la base de datos están cifradas ("hasheadas" o encriptadas reversiblemente si se necesitan ver, ver notas).
-- [ ] Sigue funcionando en GitHub Pages.
-
-### [ ] Verificación
-
-- [ ] Verificar inserción, lectura y borrado en el dashboard de Supabase.
-- [ ] Probar el cierre de sesión y protección de ruta raíz con sesión real.
-
 ## [x] Fase 9: Persistencia con Supabase (Backend/BBDD)
 
 ### [x] Objetivo
@@ -272,30 +246,31 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [x] Verificar inserción, lectura y borrado en el dashboard de Supabase.
 - [x] Probar el cierre de sesión y protección de ruta raíz con sesión real.
 
-## [ ] Fase 10: Mejoras de Frontend
+## [x] Fase 10: Mejoras de Frontend
 
-### [ ] Objetivo
+### [x] Objetivo
 
-- [ ] Mejorar la experiencia visual y funcionalidad del generador de contraseñas.
+- [x] Mejorar la experiencia visual y funcionalidad del generador de contraseñas.
 
-### [ ] Alcance
+### [x] Alcance
 
-- [ ] Actualizar footer con créditos de herramientas usadas (OpenCode, Plannotator) y nombre del desarrollador (Tobias Funes).
-- [ ] Mejorar el logo de la aplicación (cambiar de "PG" simple a un diseño más atractivo con símbolos, gráficos o librerías).
-- [ ] Actualizar mensajes obsoletos en el historial (quitar "Se guarda solo en este navegador" ya que ahora usa Supabase).
-- [ ] Implementar eliminación individual de contraseñas en el historial (botón eliminar por entrada).
+- [x] Actualizar footer con créditos de herramientas usadas (OpenCode, Plannotator) y nombre del desarrollador (Tobias Funes).
+- [x] Mejorar el logo de la aplicación (cambiar de "PG" simple a un diseño más atractivo con símbolos, gráficos o librerías).
+- [x] Actualizar mensajes obsoletos en el historial (quitar "Se guarda solo en este navegador" ya que ahora usa Supabase).
+- [x] Implementar eliminación individual de contraseñas en el historial (botón eliminar por entrada).
+- [ ] Agregar confirmación de eliminación en el botón "Limpiar" para evitar borrados accidentales.
 
-### [ ] Criterios de aceptación
+### [x] Criterios de aceptación
 
-- [ ] Footer muestra: nombre del desarrollador, herramientas usadas y año actual.
-- [ ] Logo es visualmente atractivo y diferente a solo texto "PG".
-- [ ] Mensajes del historial reflejan que se usa base de datos Supabase.
-- [ ] Cada entrada del historial tiene un botón para eliminar esa contraseña específica.
+- [x] Footer muestra: nombre del desarrollador, herramientas usadas y año actual.
+- [x] Logo es visualmente atractivo y diferente a solo texto "PG" (actualizado en ambas vistas: login y generador).
+- [x] Mensajes del historial reflejan que se usa base de datos Supabase.
+- [x] Cada entrada del historial tiene un botón para eliminar esa contraseña específica.
 
-### [ ] Verificación
+### [x] Verificación
 
-- [ ] Probar eliminación individual sin afectar otras contraseñas.
-- [ ] Verificar que los cambios se reflejan correctamente en Supabase.
+- [x] Probar eliminación individual sin afectar otras contraseñas.
+- [x] Verificar que los cambios se reflejan correctamente en Supabase.
 
 ## [ ] Riesgos y decisiones pendientes
 

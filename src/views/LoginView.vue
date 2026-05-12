@@ -42,7 +42,7 @@ async function handleLogin() {
   <main class="page">
     <div class="panel login-panel">
       <div class="brand">
-        <div class="badge" aria-hidden="true">PG</div>
+        <div class="badge" aria-hidden="true">🔐</div>
         <h1 class="title">Iniciar Sesion</h1>
       </div>
       

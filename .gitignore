@@ -8,3 +8,6 @@ dist/
 # Local env files
 .env
 .env.*
+
+# DB
+passwd.txt

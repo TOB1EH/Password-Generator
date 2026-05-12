@@ -5,7 +5,7 @@ Pasos obligatorios para que la persistencia en Supabase funcione correctamente. 
 ## Paso 1: Crear tu usuario administrador
 
 Supabase gestiona la autenticación de forma nativa y segura.
-1. Entra a tu dashboard de Supabase: [https://supabase.com/dashboard/project/eqvcitdiyfmukaiwegrs](https://supabase.com/dashboard/project/eqvcitdiyfmukaiwegrs).
+1. Entra a tu dashboard de Proyecto de Supabase.
 2. Ve al apartado de **Authentication** > **Users** en el menú izquierdo.
 3. Haz clic arriba a la derecha en **Add User** -> **Create New User**.
 4. Añade tu correo electrónico personal y una contraseña segura. 

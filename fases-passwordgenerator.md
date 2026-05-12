@@ -278,3 +278,33 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [ ] Definir “misma contraseña” (determinística vs aleatoria desde base)
 - [x] Definir idioma y tamaño del diccionario: Inglés y español (diccionario grande)
 - [x] Definir alcance real de Login/Logout: Crear usuario administrador unicamente, es una plataforma personal donde solo yo puedo loguearme.
+
+## [x] Fase 11: Redacción de README.md
+
+### [x] Objetivo
+
+- [x] Documentar completamente el proyecto con instrucciones claras para usuarios y desarrolladores.
+
+### [x] Alcance
+
+- [x] Descripción general del proyecto y características principales.
+- [x] Instrucciones de instalación y configuración local.
+- [x] Guía de uso de la aplicación (modos, opciones, historial).
+- [x] Instrucciones de deployment en GitHub Pages.
+- [x] Notas de seguridad (cifrado, autenticación Supabase).
+- [x] Stack tecnológico y dependencias principales.
+- [x] Estructura de directorios del proyecto.
+- [x] Contribución y licencia.
+
+### [x] Criterios de aceptación
+
+- [x] README es claro, estructurado y fácil de seguir.
+- [x] Incluye ejemplos de uso.
+- [x] Explica cómo configurar Supabase localmente.
+- [x] Documenta variables de entorno necesarias.
+
+### [x] Verificación
+
+- [x] Leer README como nuevo usuario y confirmar claridad.
+- [x] Verificar que los links funcionan.
+- [x] Confirmar que las instrucciones son reproducibles.

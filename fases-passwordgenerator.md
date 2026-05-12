@@ -224,7 +224,7 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 
 ### [ ] Objetivo
 
-- [ ] Migrar el almacenamiento de contraseñas de `localStorage` a una base de datos relacional PostgreSQL en Supabase.
+- [ ] Implementar el almacenamiento de nuevas contraseñas en una base de datos relacional PostgreSQL en Supabase (la base de datos arrancará vacía, no se migrarán los datos de prueba de `localStorage`).
 - [ ] Implementar autenticación real para un único usuario administrador.
 
 ### [ ] Alcance

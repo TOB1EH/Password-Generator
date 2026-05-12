@@ -246,6 +246,57 @@ Contexto (según `planning.md`): objetivo es un generador de contraseñas segura
 - [ ] Verificar inserción, lectura y borrado en el dashboard de Supabase.
 - [ ] Probar el cierre de sesión y protección de ruta raíz con sesión real.
 
+## [x] Fase 9: Persistencia con Supabase (Backend/BBDD)
+
+### [x] Objetivo
+
+- [x] Implementar el almacenamiento de nuevas contraseñas en una base de datos relacional PostgreSQL en Supabase (la base de datos arrancará vacía, no se migrarán los datos de prueba de `localStorage`).
+- [x] Implementar autenticación real para un único usuario administrador.
+
+### [x] Alcance
+
+- [x] Configurar el cliente de Supabase en el proyecto Vue.
+- [x] Autenticación de Supabase (Login real, protección de rutas).
+- [x] Crear tabla de historial de contraseñas en Supabase (con RLS para el admin).
+- [x] Lógica de cifrado simétrico: las contraseñas deben cifrarse/desencriptarse en el cliente (usando una clave maestra o derivada) antes de guardarse en Supabase, para que ni siquiera teniendo acceso a la DB se puedan leer en texto plano.
+
+### [x] Criterios de aceptación
+
+- [x] El usuario ingresa con credenciales reales (administrador).
+- [x] El historial se sincroniza y se lee desde Supabase.
+- [x] Las contraseñas en la base de datos están cifradas ("hasheadas" o encriptadas reversiblemente si se necesitan ver, ver notas).
+- [x] Sigue funcionando en GitHub Pages.
+
+### [x] Verificación
+
+- [x] Verificar inserción, lectura y borrado en el dashboard de Supabase.
+- [x] Probar el cierre de sesión y protección de ruta raíz con sesión real.
+
+## [ ] Fase 10: Mejoras de Frontend
+
+### [ ] Objetivo
+
+- [ ] Mejorar la experiencia visual y funcionalidad del generador de contraseñas.
+
+### [ ] Alcance
+
+- [ ] Actualizar footer con créditos de herramientas usadas (OpenCode, Plannotator) y nombre del desarrollador (Tobias Funes).
+- [ ] Mejorar el logo de la aplicación (cambiar de "PG" simple a un diseño más atractivo con símbolos, gráficos o librerías).
+- [ ] Actualizar mensajes obsoletos en el historial (quitar "Se guarda solo en este navegador" ya que ahora usa Supabase).
+- [ ] Implementar eliminación individual de contraseñas en el historial (botón eliminar por entrada).
+
+### [ ] Criterios de aceptación
+
+- [ ] Footer muestra: nombre del desarrollador, herramientas usadas y año actual.
+- [ ] Logo es visualmente atractivo y diferente a solo texto "PG".
+- [ ] Mensajes del historial reflejan que se usa base de datos Supabase.
+- [ ] Cada entrada del historial tiene un botón para eliminar esa contraseña específica.
+
+### [ ] Verificación
+
+- [ ] Probar eliminación individual sin afectar otras contraseñas.
+- [ ] Verificar que los cambios se reflejan correctamente en Supabase.
+
 ## [ ] Riesgos y decisiones pendientes
 
 - [x] Host de auto-deploy: GitHub Pages

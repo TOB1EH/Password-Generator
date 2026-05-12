@@ -9,6 +9,7 @@ import {
   LogOut,
   Monitor,
   Moon,
+  Trash2,
   Sun,
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
@@ -273,6 +274,22 @@ async function clearHistory() {
   }
 }
 
+async function deleteHistoryItem(id) {
+  try {
+    const { error } = await supabase
+      .from('password_history')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+    
+    history.value = history.value.filter(item => item.id !== id)
+    revealedIds.value.delete(id)
+  } catch (err) {
+    console.error('Error deleting history item', err)
+  }
+}
+
 function toggleReveal(id) {
   const s = new Set(revealedIds.value)
   if (s.has(id)) s.delete(id)
@@ -422,7 +439,7 @@ onMounted(async () => {
   <main class="page">
     <header class="header">
       <div class="brand">
-        <div class="badge" aria-hidden="true">PG</div>
+        <div class="badge" aria-hidden="true">🔐</div>
         <div class="brandText">
           <h1 class="title">Password Generator</h1>
           <p class="subtitle">Genera contrasenas aleatorias seguras</p>
@@ -666,7 +683,7 @@ onMounted(async () => {
         <div class="historyHead">
           <div class="historyTitle">
             <div class="label">Historial</div>
-            <div class="historyHint">Se guarda solo en este navegador</div>
+            <div class="historyHint">Se guarda cifrado en Supabase</div>
           </div>
 
           <div class="historyActions">
@@ -708,15 +725,24 @@ onMounted(async () => {
                 <EyeOff v-if="isRevealed(h.id)" aria-hidden="true" :size="16" />
                 <Eye v-else aria-hidden="true" :size="16" />
               </button>
-              <button
-                class="historyIconBtn"
-                type="button"
-                @click="copyHistoryItem(h)"
-                :aria-label="'Copiar'"
-                :title="'Copiar'"
-              >
-                <Copy aria-hidden="true" :size="16" />
-              </button>
+               <button
+                 class="historyIconBtn"
+                 type="button"
+                 @click="copyHistoryItem(h)"
+                 :aria-label="'Copiar'"
+                 :title="'Copiar'"
+               >
+                 <Copy aria-hidden="true" :size="16" />
+               </button>
+               <button
+                 class="historyIconBtn historyIconBtnDelete"
+                 type="button"
+                 @click="deleteHistoryItem(h.id)"
+                 :aria-label="'Eliminar'"
+                 :title="'Eliminar'"
+               >
+                 <Trash2 aria-hidden="true" :size="16" />
+               </button>
             </div>
           </li>
         </ul>
@@ -724,7 +750,7 @@ onMounted(async () => {
     </section>
 
     <footer class="footer">
-      <small>&copy; {{ year }}</small>
+      <small>&copy; {{ year }} Tobias Funes | Construido con OpenCode & Plannotator</small>
     </footer>
   </main>
 </template>
@@ -1169,6 +1195,11 @@ onMounted(async () => {
 .historyIconBtn:hover {
   color: var(--fg);
   background: var(--btn);
+}
+
+.historyIconBtnDelete:hover {
+  color: rgba(255, 102, 102, 0.95);
+  background: rgba(255, 102, 102, 0.15);
 }
 
 .footer {

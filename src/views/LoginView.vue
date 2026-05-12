@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { Lock } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase.js'
 
@@ -42,7 +43,9 @@ async function handleLogin() {
   <main class="page">
     <div class="panel login-panel">
       <div class="brand">
-        <div class="badge" aria-hidden="true">🔐</div>
+        <div class="badge" aria-hidden="true">
+          <Lock :size="24" />
+        </div>
         <h1 class="title">Iniciar Sesion</h1>
       </div>
       
@@ -117,6 +120,7 @@ async function handleLogin() {
   color: rgba(0, 0, 0, 0.88);
   font-weight: 800;
   letter-spacing: 0.6px;
+  flex-shrink: 0;
 }
 
 .title {

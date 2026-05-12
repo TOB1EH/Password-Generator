@@ -6,6 +6,7 @@ import {
   Copy,
   Eye,
   EyeOff,
+  Lock,
   LogOut,
   Monitor,
   Moon,
@@ -21,6 +22,7 @@ import {
 import { generatePassphrase } from '../lib/passphrase.js'
 import { supabase } from '../lib/supabase.js'
 import { deriveKey, encryptData, decryptData } from '../lib/crypto.js'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const router = useRouter()
 const username = ref('Administrador')
@@ -50,6 +52,7 @@ const theme = ref('system')
 const history = ref([])
 const historyOpen = ref(true)
 const revealedIds = ref(new Set())
+const clearHistoryDialogOpen = ref(false)
 
 let sessionKey = null
 
@@ -258,12 +261,10 @@ async function addToHistory({ label, kind, value }) {
   }
 }
 
-async function clearHistory() {
-  const confirmed = confirm('¿Estás seguro de que quieres eliminar TODO el historial? Esta acción no se puede deshacer.')
-  if (!confirmed) return
-
+async function confirmClearHistory() {
   history.value = []
   revealedIds.value = new Set()
+  clearHistoryDialogOpen.value = false
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
@@ -275,6 +276,14 @@ async function clearHistory() {
   } catch (err) {
     console.error('Error clearing history', err)
   }
+}
+
+function openClearHistoryDialog() {
+  clearHistoryDialogOpen.value = true
+}
+
+function closeClearHistoryDialog() {
+  clearHistoryDialogOpen.value = false
 }
 
 async function deleteHistoryItem(id) {
@@ -442,7 +451,9 @@ onMounted(async () => {
   <main class="page">
     <header class="header">
       <div class="brand">
-        <div class="badge" aria-hidden="true">🔐</div>
+        <div class="badge" aria-hidden="true">
+          <Lock :size="24" />
+        </div>
         <div class="brandText">
           <h1 class="title">Password Generator</h1>
           <p class="subtitle">Genera contrasenas aleatorias seguras</p>
@@ -702,7 +713,7 @@ onMounted(async () => {
               <ChevronUp v-if="historyOpen" aria-hidden="true" class="iconSvg" :size="18" />
               <ChevronDown v-else aria-hidden="true" class="iconSvg" :size="18" />
             </button>
-            <button class="btn btnGhost" type="button" @click="clearHistory" :disabled="history.length === 0">
+            <button class="btn btnGhost" type="button" @click="openClearHistoryDialog" :disabled="history.length === 0">
               Limpiar
             </button>
           </div>
@@ -752,6 +763,17 @@ onMounted(async () => {
       </div>
     </section>
 
+    <ConfirmDialog
+      :open="clearHistoryDialogOpen"
+      title="Eliminar todo el historial"
+      message="¿Estás seguro de que quieres eliminar TODO el historial? Esta acción no se puede deshacer."
+      :dangerous="true"
+      confirmText="Eliminar"
+      cancelText="Cancelar"
+      @confirm="confirmClearHistory"
+      @cancel="closeClearHistoryDialog"
+    />
+
     <footer class="footer">
       <small>&copy; {{ year }} Tobias Funes | Construido con OpenCode & Plannotator</small>
     </footer>
@@ -789,6 +811,7 @@ onMounted(async () => {
   color: rgba(0, 0, 0, 0.88);
   font-weight: 800;
   letter-spacing: 0.6px;
+  flex-shrink: 0;
 }
 
 .brandText {

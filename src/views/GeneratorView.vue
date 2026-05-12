@@ -53,6 +53,8 @@ const history = ref([])
 const historyOpen = ref(true)
 const revealedIds = ref(new Set())
 const clearHistoryDialogOpen = ref(false)
+const deleteItemDialogOpen = ref(false)
+const deleteItemId = ref(null)
 
 let sessionKey = null
 
@@ -286,20 +288,35 @@ function closeClearHistoryDialog() {
   clearHistoryDialogOpen.value = false
 }
 
-async function deleteHistoryItem(id) {
+async function confirmDeleteItem() {
+  if (!deleteItemId.value) return
+
   try {
     const { error } = await supabase
       .from('password_history')
       .delete()
-      .eq('id', id)
+      .eq('id', deleteItemId.value)
     
     if (error) throw error
     
-    history.value = history.value.filter(item => item.id !== id)
-    revealedIds.value.delete(id)
+    history.value = history.value.filter(item => item.id !== deleteItemId.value)
+    revealedIds.value.delete(deleteItemId.value)
   } catch (err) {
     console.error('Error deleting history item', err)
+  } finally {
+    deleteItemDialogOpen.value = false
+    deleteItemId.value = null
   }
+}
+
+function openDeleteItemDialog(id) {
+  deleteItemId.value = id
+  deleteItemDialogOpen.value = true
+}
+
+function closeDeleteItemDialog() {
+  deleteItemDialogOpen.value = false
+  deleteItemId.value = null
 }
 
 function toggleReveal(id) {
@@ -748,15 +765,15 @@ onMounted(async () => {
                >
                  <Copy aria-hidden="true" :size="16" />
                </button>
-               <button
-                 class="historyIconBtn historyIconBtnDelete"
-                 type="button"
-                 @click="deleteHistoryItem(h.id)"
-                 :aria-label="'Eliminar'"
-                 :title="'Eliminar'"
-               >
-                 <Trash2 aria-hidden="true" :size="16" />
-               </button>
+                <button
+                  class="historyIconBtn historyIconBtnDelete"
+                  type="button"
+                  @click="openDeleteItemDialog(h.id)"
+                  :aria-label="'Eliminar'"
+                  :title="'Eliminar'"
+                >
+                  <Trash2 aria-hidden="true" :size="16" />
+                </button>
             </div>
           </li>
         </ul>
@@ -772,6 +789,17 @@ onMounted(async () => {
       cancelText="Cancelar"
       @confirm="confirmClearHistory"
       @cancel="closeClearHistoryDialog"
+    />
+
+    <ConfirmDialog
+      :open="deleteItemDialogOpen"
+      title="Eliminar contraseña"
+      message="¿Estás seguro de que quieres eliminar esta contraseña? Esta acción no se puede deshacer."
+      :dangerous="true"
+      confirmText="Eliminar"
+      cancelText="Cancelar"
+      @confirm="confirmDeleteItem"
+      @cancel="closeDeleteItemDialog"
     />
 
     <footer class="footer">
@@ -1235,6 +1263,24 @@ onMounted(async () => {
 }
 
 @media (max-width: 680px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .brand {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .header-actions {
+    position: static;
+    transform: none;
+    justify-content: center;
+  }
+
   .outputRow {
     grid-template-columns: 1fr;
   }

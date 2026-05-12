@@ -2,11 +2,15 @@
 
 Generador de contraseñas y frases de acceso seguras, cifradas y profesionales. Construido con Vue 3, Vite, Supabase y Web Crypto API.
 
+> Este proyecto fue desarrollado desde cero utilizando **OpenCode** y **Plannotator** como agentes de IA para asistencia en desarrollo, planificación y revisión de código.
+
 **Sitio en vivo**: [Password Generator en GitHub Pages](https://tob1eh.github.io/Password-Generator/)
 
 ---
 
 ## Stack Tecnológico
+
+### Tecnologías principales
 
 [![Vue 3](https://img.shields.io/badge/Vue%203-35495e?style=for-the-badge&logo=vue.js)](https://vuejs.org)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
@@ -14,6 +18,11 @@ Generador de contraseñas y frases de acceso seguras, cifradas y profesionales. 
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222?style=for-the-badge&logo=github&logoColor=white)](https://pages.github.com)
+
+### Herramientas de desarrollo y planificación
+
+[![OpenCode](https://img.shields.io/badge/OpenCode-Agente%20IA-FF6B35?style=for-the-badge)](https://opencode.ai)
+[![Plannotator](https://img.shields.io/badge/Plannotator-Revision%20y%20Anotaciones-4A90E2?style=for-the-badge)](https://plannotator.ai)
 
 ---
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de Backup Automático para Password Generator
-# Crea un dump encriptado de la base de datos Supabase
+# Crea un dump de la base de datos Supabase usando pgAdmin o comando directo
 # Uso: bash backup.sh o npm run backup
 
 set -e
@@ -10,6 +10,7 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${YELLOW}Password Generator - Backup Script${NC}"
@@ -40,21 +41,16 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/password_generator_${TIMESTAMP}.sql"
 BACKUP_FILE_COMPRESSED="${BACKUP_FILE}.gz"
 
-# 6. Construir connection string desde VITE_SUPABASE_URL
-# Formato esperado: https://PROJECT_ID.supabase.co
-# Convertir a: postgresql://postgres.PROJECT_ID:PASSWORD@PROJECT_ID.supabase.co:5432/postgres
-
-# Extraer PROJECT_ID de la URL
+# 6. Extraer PROJECT_ID de la URL
 PROJECT_ID=$(echo "$VITE_SUPABASE_URL" | sed 's|https://||' | cut -d. -f1)
 
-# Verificar que se extrajo correctamente
 if [ -z "$PROJECT_ID" ]; then
   echo -e "${RED}Error: No se pudo extraer PROJECT_ID de VITE_SUPABASE_URL${NC}"
   echo "Asegúrate que VITE_SUPABASE_URL tenga formato: https://PROJECT_ID.supabase.co"
   exit 1
 fi
 
-# Pedir contraseña si no está disponible
+# 7. Pedir contraseña si no está disponible
 if [ -z "$SUPABASE_DB_PASSWORD" ]; then
   echo -e "${YELLOW}Ingresa la contraseña de la base de datos Supabase:${NC}"
   read -s SUPABASE_DB_PASSWORD
@@ -64,44 +60,55 @@ if [ -z "$SUPABASE_DB_PASSWORD" ]; then
   fi
 fi
 
-# Construir connection string
-DB_URL="postgresql://postgres.${PROJECT_ID}:${SUPABASE_DB_PASSWORD}@${PROJECT_ID}.supabase.co:5432/postgres"
+# 8. Mostrar instrucciones
+echo -e "${BLUE}Creando backup de la base de datos...${NC}"
+echo ""
+echo -e "${YELLOW}Opción 1: Si tienes pg_dump instalado${NC}"
+echo -e "Ejecuta este comando en tu terminal:"
+echo ""
+echo -e "${GREEN}PGPASSWORD='${SUPABASE_DB_PASSWORD}' pg_dump -h db.${PROJECT_ID}.supabase.co -U postgres.${PROJECT_ID} -d postgres > ${BACKUP_FILE}${NC}"
+echo ""
+echo -e "${YELLOW}Opción 2: Usar pgAdmin (interfaz gráfica)${NC}"
+echo -e "1. Ve a: https://supabase.com/dashboard/project/${PROJECT_ID}/database/pgadmin"
+echo -e "2. En el menú izquierdo, haz click en 'Databases' → 'postgres'"
+echo -e "3. Click derecho → 'Backup' → Guardar archivo"
+echo ""
+echo -e "${YELLOW}Opción 3: Descargar backup automático${NC}"
+echo -e "1. Ve a: https://supabase.com/dashboard/project/${PROJECT_ID}/database/backups"
+echo -e "2. Descarga el backup disponible (requiere plan Pro)"
+echo ""
 
-# 7. Ejecutar pg_dump
-echo -e "${YELLOW}Creando backup de la base de datos...${NC}"
-
+# 9. Intenta con pg_dump si está disponible
 if command -v pg_dump &> /dev/null; then
-  # pg_dump disponible localmente
-  pg_dump "$DB_URL" > "$BACKUP_FILE"
-else
-  # Intenta con podman/docker
-  echo -e "${YELLOW}pg_dump no encontrado localmente. Intentando con Docker...${NC}"
-  docker run --rm postgres:15 pg_dump "$DB_URL" > "$BACKUP_FILE" || {
-    echo -e "${RED}Error: pg_dump no disponible. Instala PostgreSQL client tools:${NC}"
-    echo "  Ubuntu/Debian: sudo apt-get install postgresql-client"
-    echo "  macOS: brew install postgresql"
-    echo "  Windows: Instala PostgreSQL desde https://www.postgresql.org/download/"
-    exit 1
+  echo -e "${BLUE}Intentando usar pg_dump...${NC}"
+  
+  # Usar timeout para evitar cuelgues
+  timeout 15 bash -c "PGPASSWORD='${SUPABASE_DB_PASSWORD}' pg_dump -h db.${PROJECT_ID}.supabase.co -U postgres.${PROJECT_ID} -d postgres > '${BACKUP_FILE}'" 2>/dev/null && {
+    echo -e "${GREEN}Backup creado exitosamente${NC}"
+    
+    # Comprimir
+    echo -e "${YELLOW}Comprimiendo...${NC}"
+    gzip "$BACKUP_FILE"
+    
+    BACKUP_SIZE=$(du -h "$BACKUP_FILE_COMPRESSED" | cut -f1)
+    echo -e "${GREEN}Backup completado: ${BACKUP_FILE_COMPRESSED} (${BACKUP_SIZE})${NC}"
+    
+    # Limpiar backups antiguos
+    cd "$BACKUP_DIR"
+    ls -t password_generator_*.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm
+    
+    exit 0
+  } || {
+    echo -e "${YELLOW}pg_dump no pudo conectar (timeout). Usa las opciones anteriores manualmente.${NC}"
   }
+else
+  echo -e "${YELLOW}pg_dump no está instalado. Usa pgAdmin o descarga manual (ver opciones arriba).${NC}"
 fi
 
-if [ ! -f "$BACKUP_FILE" ]; then
-  echo -e "${RED}Error: No se pudo crear el backup${NC}"
-  exit 1
-fi
-
-# 8. Comprimir el backup
-echo -e "${YELLOW}Comprimiendo backup...${NC}"
-gzip "$BACKUP_FILE"
-
-# 9. Mostrar resultado
-BACKUP_SIZE=$(du -h "$BACKUP_FILE_COMPRESSED" | cut -f1)
-echo -e "${GREEN}Backup completado exitosamente${NC}"
-echo -e "Archivo: ${GREEN}$BACKUP_FILE_COMPRESSED${NC} (${GREEN}${BACKUP_SIZE}${NC})"
-
-# 10. Limpiar archivos antiguos (mantener últimos 10 backups)
-echo -e "${YELLOW}Limpiando backups antiguos (guardando últimos 10)...${NC}"
-cd "$BACKUP_DIR"
-ls -t password_generator_*.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm
-
-echo -e "${GREEN}Done!${NC}"
+echo ""
+echo -e "${RED}Para instalar pg_dump:${NC}"
+echo "  Ubuntu/Debian: sudo apt-get install postgresql-client"
+echo "  macOS: brew install postgresql"
+echo "  Windows: Instala PostgreSQL desde https://www.postgresql.org/download/"
+echo ""
+echo -e "${BLUE}Documentación: https://github.com/TOB1EH/Password-Generator/blob/main/BACKUP.md${NC}"

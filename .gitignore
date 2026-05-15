@@ -11,3 +11,6 @@ dist/
 
 # DB
 passwd.txt
+
+# Backups (guardarlos localmente, no en Git)
+backups/

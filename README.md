@@ -35,6 +35,7 @@ Generador de contraseñas y frases de acceso seguras, cifradas y profesionales. 
 - **Modo claro/oscuro**: Toggle entre temas claro, oscuro y automático (respeta `prefers-color-scheme`)
 - **Historial cifrado**: Guarda el historial en Supabase con cifrado AES-GCM (solo tú puedes verlo)
 - **Autenticación real**: Login con Supabase (usuario administrador único)
+- **Backups automáticos**: Descarga cifrada completa de tu historial sin pagar plan premium
 - **Responsive**: Interfaz optimizada para desktop, tablet y mobile
 - **Copiar al portapapeles**: Copia con un click y feedback visual
 
@@ -178,13 +179,18 @@ Password-Generator/
 │   └── router/
 │       └── index.js         # Vue Router (hash history para Pages)
 ├── dist/                     # Build output (generado)
+├── backups/                  # Backups comprimidos (gitignored)
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml       # GitHub Actions para Pages
 ├── vite.config.js           # Configuración Vite
 ├── package.json             # Dependencias npm
 ├── README.md                # Este archivo
+├── BACKUP.md                # Guía de backups y restauración
 ├── SUPABASE_SETUP.md        # Guía de configuración Supabase
+├── backup.mjs               # Script de backup via REST API
+├── backup.sh                # Script de backup via Docker (legacy)
+├── .env.example             # Template de variables de entorno
 ├── fases-passwordgenerator.md # Plan de fases (desarrollo)
 └── supabase_schema.sql      # SQL para crear tabla y RLS
 ```
@@ -194,11 +200,12 @@ Password-Generator/
 ## Comandos npm
 
 ```bash
-npm install      # Instalar dependencias
-npm run dev      # Ejecutar servidor de desarrollo
-npm run build    # Build para producción
-npm run preview  # Previsualizar build localmente
-npm run lint     # Linter (si está configurado)
+npm install          # Instalar dependencias
+npm run dev          # Ejecutar servidor de desarrollo
+npm run build        # Build para producción
+npm run preview      # Previsualizar build localmente
+npm run backup       # Crear backup del historial (recomendado)
+npm run backup:legacy # Backup alternativo via Docker
 ```
 
 ---
@@ -219,6 +226,38 @@ npm run lint     # Linter (si está configurado)
 - Historial limitado a 50 entradas por sesión
 - Longitud de contraseña: 8-128 caracteres
 - Frases: 2-20 palabras
+
+---
+
+## Backups y Recuperación
+
+### Hacer Backup
+
+La app incluye un script para hacer backups completos de tu historial de contraseñas **sin necesidad de plan premium**.
+
+```bash
+# Configurar credenciales una sola vez
+nano .env.local
+# Agregar: SUPABASE_AUTH_EMAIL y SUPABASE_AUTH_PASSWORD
+
+# Hacer backup
+npm run backup
+```
+
+El backup:
+- ✅ Se genera en `backups/password_generator_YYYYMMDD_HHMMSS.sql.gz`
+- ✅ Contiene todos los datos **cifrados en AES-GCM**
+- ✅ Es seguro almacenar en la nube (Dropbox, Google Drive, GitHub)
+- ✅ Se puede restaurar en cualquier momento
+
+Para documentación completa, ver [BACKUP.md](./BACKUP.md).
+
+### Restaurar Backup
+
+Ver sección **"Restaurar desde Backup"** en [BACKUP.md](./BACKUP.md) para:
+- Restaurar en un nuevo proyecto Supabase
+- Restaurar en proyecto existente
+- Troubleshooting
 
 ---
 

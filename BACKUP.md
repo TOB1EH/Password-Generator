@@ -52,25 +52,111 @@ El backup usa la **REST API de Supabase** (HTTPS), no la conexión PostgreSQL di
 
 ## Restaurar desde Backup
 
-### Opción 1: Restaurar a un nuevo proyecto
+### Paso Previo: Descomprimir el backup
 
-1. Crea nuevo proyecto en Supabase
-2. Ejecuta el schema:
-   ```bash
-   # En pgAdmin de Supabase, copia el contenido de supabase_schema.sql
-   ```
-3. Importa el backup:
-   ```bash
-   gunzip backups/password_generator_YYYYMMDD_HHMMSS.sql.gz
-   psql "CONNECTION_STRING" < backups/password_generator_YYYYMMDD_HHMMSS.sql
-   ```
+```bash
+# Encuentra el archivo .sql.gz más reciente
+ls -lt backups/*.sql.gz | head -1
 
-### Opción 2: Restaurar parcialmente
+# Descomprime
+gunzip backups/password_generator_YYYYMMDD_HHMMSS.sql.gz
+# Resultado: password_generator_YYYYMMDD_HHMMSS.sql
+```
 
-Los archivos `.sql` son texto plano. Puedes:
-- Editarlos para restaurar solo ciertos registros
-- Combinar múltiples backups
-- Extraer contraseñas específicas (aunque están cifradas)
+### Opción 1: Restaurar en Nuevo Proyecto Supabase
+
+**Caso de uso**: Migrar a otro proyecto Supabase, disaster recovery.
+
+**Paso 1**: Crea nuevo proyecto en Supabase
+- Ve a [supabase.com](https://supabase.com)
+- Click "New Project"
+- Esperar 2-3 minutos a que se cree
+
+**Paso 2**: Prepara la estructura (SQL Editor)
+- Copia contenido completo de `supabase_schema.sql`
+- Pega en SQL Editor del nuevo proyecto
+- Ejecuta completamente
+
+**Paso 3**: Importa datos del backup
+```bash
+# Obtén connection string del nuevo proyecto
+# Settings → Database → Connection string (URI)
+
+psql "postgresql://postgres.PROJECT_ID:PASSWORD@db.PROJECT_ID.supabase.co:5432/postgres" < password_generator_YYYYMMDD_HHMMSS.sql
+```
+
+**Si no tienes psql**: Copia el `.sql` directamente en SQL Editor y ejecuta.
+
+### Opción 2: Restaurar en Proyecto Existente
+
+**Caso de uso**: Recuperar datos borrados, combinar backups.
+
+**Advertencia**: Haz backup antes de esto.
+
+**Método 1 - SQL Editor** (más fácil):
+1. Abre archivo `.sql` en editor de texto
+2. Ve a Supabase Dashboard → SQL Editor
+3. Copia/pega contenido
+4. Click "RUN"
+
+**Método 2 - psql**:
+```bash
+psql "postgresql://postgres.PROJECT_ID:PASSWORD@db.PROJECT_ID.supabase.co:5432/postgres" < password_generator_YYYYMMDD_HHMMSS.sql
+```
+
+### Opción 3: Restaurar Parcialmente
+
+Los archivos `.sql` son texto. Puedes editarlos:
+
+```bash
+# Combinar dos backups
+cat backup1.sql backup2.sql > combined.sql
+
+# Editar para traer solo ciertos registros
+nano combined.sql
+
+# Restaurar
+psql "CONNECTION_STRING" < combined.sql
+```
+
+### Verificar Restauración
+
+```bash
+# Recarga la app - deberías ver el historial
+
+# O verifica con SQL:
+SELECT COUNT(*) FROM password_history;
+```
+
+---
+
+## Troubleshooting Restauración
+
+### Error: "relation password_history does not exist"
+
+Causa: No ejecutaste `supabase_schema.sql`
+
+Solución:
+1. SQL Editor → Copia `supabase_schema.sql` completo
+2. Ejecuta en Supabase
+3. Luego importa el backup
+
+### Error: "permission denied"
+
+Solución: Verifica que estés autenticado como usuario correcto
+
+### Error: "psql: command not found"
+
+Solución: 
+```bash
+# Ubuntu/Debian
+sudo apt-get install postgresql-client
+
+# macOS
+brew install postgresql
+```
+
+O usa SQL Editor en lugar de psql
 
 ---
 
